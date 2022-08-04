@@ -36,6 +36,30 @@ const StudyBoard = () => {
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
 
+  if (
+    orientation === "white" &&
+    game.turn() === "b" &&
+    moveCount < opening.length
+  ) {
+    const gameCopy = { ...game };
+    setTimeout(() => {
+      gameCopy.move(opening[moveCount]);
+      setGame(gameCopy);
+      setMoveCount(moveCount + 1);
+    }, 200);
+  } else if (
+    orientation === "black" &&
+    game.turn() === "w" &&
+    moveCount < opening.length
+  ) {
+    const gameCopy = { ...game };
+    setTimeout(() => {
+      gameCopy.move(opening[moveCount]);
+      setGame(gameCopy);
+      setMoveCount(moveCount + 1);
+    }, 200);
+  }
+
   function onDrop({ sourceSquare, targetSquare }) {
     setMessage("");
     const gameCopy = { ...game };
@@ -51,11 +75,6 @@ const StudyBoard = () => {
       if (move.san === opening[moveCount]) {
         setGame(gameCopy);
         setMoveCount(moveCount + 1);
-        // gameCopy.move(opening[moveCount + 1]);
-        // setTimeout(() => {
-        //   setGame(gameCopy);
-        // }, 200);
-        // setMoveCount(moveCount + 1);
       }
       if (game.in_check()) {
         setMessage("check");
@@ -124,6 +143,7 @@ const StudyBoard = () => {
           darkSquareStyle={colorTheme.dark}
           lightSquareStyle={colorTheme.light}
           dropSquareStyle={colorTheme.drop}
+          squareStyles={{}}
         />
       </section>
       <h2>{message}</h2>
