@@ -1,28 +1,9 @@
 import Chessboard from "chessboardjsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
+import axios from "axios";
 
-const exampleLine = [
-  "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. cxd5 exd5 5. Bg5 Be7 6. e3 O-O 7. Bd3 Nbd7 8. Nf3 Re8",
-];
-const opening = [
-  "d4",
-  "d5",
-  "c4",
-  "e6",
-  "Nc3",
-  "Nf6",
-  "cxd5",
-  "exd5",
-  "Bg5",
-  "Be7",
-  "e3",
-  "O-O",
-  "Bd3",
-  "Nbd7",
-  "Nf3",
-  "Re8",
-];
+const kBaseUrl = "http://localhost:8080/opening";
 
 const StudyBoard = () => {
   const chess = new Chess();
@@ -30,31 +11,61 @@ const StudyBoard = () => {
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
+  const [openings, setOpenings] = useState([]);
+  const [selectedOpening, setSelectedOpening] = useState("");
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
 
+  const getOpeningsAsync = () => {
+    return axios
+      .get(kBaseUrl)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error("error getting all boards");
+      });
+  };
+
+  const getOpenings = () => {
+    getOpeningsAsync()
+      .then((openings) => {
+        // console.log(openings);
+        setOpenings(openings);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    getOpenings();
+  }, []);
+
+  // Handles CPU making the correct opening moves
   if (
     orientation === "white" &&
     game.turn() === "b" &&
-    moveCount < opening.length
+    moveCount < selectedOpening.length
   ) {
     const gameCopy = { ...game };
     setTimeout(() => {
-      gameCopy.move(opening[moveCount]);
+      gameCopy.move(selectedOpening[moveCount]);
       setGame(gameCopy);
       setMoveCount(moveCount + 1);
     }, 200);
   } else if (
     orientation === "black" &&
     game.turn() === "w" &&
-    moveCount < opening.length
+    moveCount < selectedOpening.length
   ) {
     const gameCopy = { ...game };
     setTimeout(() => {
-      gameCopy.move(opening[moveCount]);
+      gameCopy.move(selectedOpening[moveCount]);
       setGame(gameCopy);
       setMoveCount(moveCount + 1);
     }, 200);
@@ -64,21 +75,24 @@ const StudyBoard = () => {
     setMessage("");
     const gameCopy = { ...game };
     const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
-    if (moveCount < opening.length - 1) {
+    if (moveCount < selectedOpening.length - 1) {
       if (!move) {
         return;
       }
-      if (move.san !== opening[moveCount]) {
+      if (move.san !== selectedOpening[moveCount]) {
         gameCopy.undo();
         setMessage("Try again... ");
       }
-      if (move.san === opening[moveCount]) {
+      if (move.san === selectedOpening[moveCount]) {
         setGame(gameCopy);
         setMoveCount(moveCount + 1);
       }
       if (game.in_check()) {
         setMessage("check");
       }
+    } else if (!selectedOpening) {
+      setMessage("select an opening!");
+      return;
     } else {
       setMessage("Out of book, but follow your curiosity...");
       setGame(gameCopy);
@@ -97,13 +111,20 @@ const StudyBoard = () => {
     setMessage("");
     const gameCopy = { ...game };
     gameCopy.undo();
+    gameCopy.undo();
+    setMoveCount(moveCount - 2);
     setGame(gameCopy);
-    setMoveCount(moveCount - 1);
   }
 
   function handleFlip() {
     orientation === "white" ? setOrientation("black") : setOrientation("white");
   }
+
+  const handleOpeningChange = (event) => {
+    const opening = event.target.value;
+    setSelectedOpening(opening.split(" "));
+    handleReset();
+  };
 
   function handleThemeChange(event) {
     const theme = event.target.value;
@@ -143,7 +164,6 @@ const StudyBoard = () => {
           darkSquareStyle={colorTheme.dark}
           lightSquareStyle={colorTheme.light}
           dropSquareStyle={colorTheme.drop}
-          squareStyles={{}}
         />
       </section>
       <h2>{message}</h2>
@@ -159,27 +179,20 @@ const StudyBoard = () => {
           <option value="random">Random</option>
         </select>
       </label>
+      <label>
+        OPENINGS
+        <select onChange={handleOpeningChange}>
+          <option value="">--select an opening--</option>
+          {openings.map((opening) => (
+            <option key={opening.id} value={opening.sequence}>
+              {opening.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <section>{game.pgn()}</section>
     </main>
   );
 };
 
 export default StudyBoard;
-// slav defence[
-//   "d4",
-//   "d5",
-//   "c4",
-//   "c6",
-//   "Nf3",
-//   "Nf6",
-//   "Nc3",
-//   "e6",
-//   "e3",
-//   "Nbd7",
-//   "Qc2",
-//   "Bd6",
-//   "Bd3",
-//   "O-O",
-//   "O-O",
-//   "dxc4",
-// ];
