@@ -5,14 +5,31 @@ import { Chess } from "chess.js";
 const exampleLine = [
   "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. cxd5 exd5 5. Bg5 Be7 6. e3 O-O 7. Bd3 Nbd7 8. Nf3 Re8",
 ];
-const opening = ["d4", "d5", "c4", "e6", "Nc3", "Nf6", "cxd5", "exd5"];
-let moveCount = 0;
+const opening = [
+  "d4",
+  "d5",
+  "c4",
+  "e6",
+  "Nc3",
+  "Nf6",
+  "cxd5",
+  "exd5",
+  "Bg5",
+  "Be7",
+  "e3",
+  "O-O",
+  "Bd3",
+  "Nbd7",
+  "Nf3",
+  "Re8",
+];
 
 const StudyBoard = () => {
   const chess = new Chess();
   const [game, setGame] = useState(chess);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
+  const [moveCount, setMoveCount] = useState(0);
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
@@ -32,8 +49,13 @@ const StudyBoard = () => {
         setMessage("Try again... ");
       }
       if (move.san === opening[moveCount]) {
-        moveCount += 1;
         setGame(gameCopy);
+        setMoveCount(moveCount + 1);
+        // gameCopy.move(opening[moveCount + 1]);
+        // setTimeout(() => {
+        //   setGame(gameCopy);
+        // }, 200);
+        // setMoveCount(moveCount + 1);
       }
       if (game.in_check()) {
         setMessage("check");
@@ -45,15 +67,19 @@ const StudyBoard = () => {
   }
 
   function handleReset() {
+    setMessage("");
     const gameCopy = { ...game };
     gameCopy.reset();
     setGame(gameCopy);
+    setMoveCount(0);
   }
 
   function handleUndo() {
+    setMessage("");
     const gameCopy = { ...game };
     gameCopy.undo();
     setGame(gameCopy);
+    setMoveCount(moveCount - 1);
   }
 
   function handleFlip() {
@@ -119,3 +145,21 @@ const StudyBoard = () => {
 };
 
 export default StudyBoard;
+// slav defence[
+//   "d4",
+//   "d5",
+//   "c4",
+//   "c6",
+//   "Nf3",
+//   "Nf6",
+//   "Nc3",
+//   "e6",
+//   "e3",
+//   "Nbd7",
+//   "Qc2",
+//   "Bd6",
+//   "Bd3",
+//   "O-O",
+//   "O-O",
+//   "dxc4",
+// ];
