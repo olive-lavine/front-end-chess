@@ -65,8 +65,12 @@ const PlayBoard = () => {
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
       });
     }
-    if (theme === "random") {
-      // getTheme();
+    if (theme === "neon") {
+      setColorTheme({
+        light: { backgroundColor: "rgb(49, 191, 236)" },
+        dark: { backgroundColor: "rgb(230, 74, 196)" },
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(220, 242, 132)" },
+      });
     }
   }
 
@@ -89,10 +93,10 @@ const PlayBoard = () => {
       <label>
         BOARD COLORS
         <select onChange={handleThemeChange}>
+          <option value="blue">Blue</option>
           <option value="rose">Rose</option>
           <option value="mint">Mint</option>
-          <option value="blue">Blue</option>
-          <option value="random">Random</option>
+          <option value="neon">Neon</option>
         </select>
       </label>
       <section>{game.pgn()}</section>

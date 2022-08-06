@@ -4,52 +4,41 @@ import axios from "axios";
 import { Chess } from "chess.js";
 import PlayBoard from "./components/PlayBoard";
 import StudyBoard from "./components/StudyBoard";
-
-const defaultBoard = {
-  a1: "wR",
-  a2: "wP",
-  a7: "bP",
-  a8: "bR",
-  b1: "wN",
-  b2: "wP",
-  b7: "bP",
-  b8: "bN",
-  c1: "wB",
-  c2: "wP",
-  c7: "bP",
-  c8: "bB",
-  d1: "wQ",
-  d2: "wP",
-  d7: "bP",
-  d8: "bQ",
-  e1: "wK",
-  e2: "wP",
-  e7: "bP",
-  e8: "bK",
-  f1: "wB",
-  f2: "wP",
-  f7: "bP",
-  f8: "bB",
-  g1: "wN",
-  g2: "wP",
-  g7: "bP",
-  g8: "bN",
-  h1: "wR",
-  h2: "wP",
-  h7: "bP",
-  h8: "bR",
-};
-
-const exampleLine = [];
+import "./App.css";
 
 const kBaseUrl = "http://localhost:8080/moveValidation";
 
 export default function App() {
+  const [selectedBoard, setSelectedBoard] = useState("");
+
+  const getSelectedBoard = () => {
+    if (selectedBoard === "PlayBoard") {
+      return <PlayBoard></PlayBoard>;
+    } else if (selectedBoard === "StudyBoard") {
+      return <StudyBoard></StudyBoard>;
+    }
+  };
+
   return (
     <main>
       <h1>Chess Opening Explorer</h1>
-      <section>
-        <StudyBoard />
+      <button
+        onClick={() => {
+          setSelectedBoard("PlayBoard");
+        }}
+      >
+        play?
+      </button>
+      <button
+        onClick={() => {
+          setSelectedBoard("StudyBoard");
+        }}
+      >
+        practice?
+      </button>
+      <section>{getSelectedBoard()}</section>
+      <section id="footer">
+        thanks to chess.js and chessboardjsx for the chess board!
       </section>
     </main>
   );

@@ -12,12 +12,23 @@ const StudyBoard = () => {
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
   const [openings, setOpenings] = useState([]);
+  const [openingView, setOpeningView] = useState("");
+  const [isShone, setIsShone] = useState(false);
   const [selectedOpening, setSelectedOpening] = useState("");
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
+
+  const cpu_moves = () => {
+    const gameCopy = { ...game };
+    setTimeout(() => {
+      gameCopy.move(selectedOpening[moveCount]);
+      setGame(gameCopy);
+      setMoveCount(moveCount + 1);
+    }, 200);
+  };
 
   const getOpeningsAsync = () => {
     return axios
@@ -34,7 +45,6 @@ const StudyBoard = () => {
   const getOpenings = () => {
     getOpeningsAsync()
       .then((openings) => {
-        // console.log(openings);
         setOpenings(openings);
       })
       .catch((err) => {
@@ -52,26 +62,20 @@ const StudyBoard = () => {
     game.turn() === "b" &&
     moveCount < selectedOpening.length
   ) {
-    const gameCopy = { ...game };
-    setTimeout(() => {
-      gameCopy.move(selectedOpening[moveCount]);
-      setGame(gameCopy);
-      setMoveCount(moveCount + 1);
-    }, 200);
+    cpu_moves();
   } else if (
     orientation === "black" &&
     game.turn() === "w" &&
     moveCount < selectedOpening.length
   ) {
-    const gameCopy = { ...game };
-    setTimeout(() => {
-      gameCopy.move(selectedOpening[moveCount]);
-      setGame(gameCopy);
-      setMoveCount(moveCount + 1);
-    }, 200);
+    cpu_moves();
   }
 
   function onDrop({ sourceSquare, targetSquare }) {
+    if (!selectedOpening) {
+      setMessage("select an opening!");
+      return;
+    }
     setMessage("");
     const gameCopy = { ...game };
     const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
@@ -90,9 +94,6 @@ const StudyBoard = () => {
       if (game.in_check()) {
         setMessage("check");
       }
-    } else if (!selectedOpening) {
-      setMessage("select an opening!");
-      return;
     } else {
       setMessage("Out of book, but follow your curiosity...");
       setGame(gameCopy);
@@ -122,9 +123,27 @@ const StudyBoard = () => {
 
   const handleOpeningChange = (event) => {
     const opening = event.target.value;
+    setOpeningView(opening);
     setSelectedOpening(opening.split(" "));
     handleReset();
   };
+
+  function handleView() {
+    if (selectedOpening) {
+      return (
+        <section>
+          <button
+            onClick={() => {
+              setIsShone((current) => !current);
+            }}
+          >
+            view opening line?
+          </button>
+          {isShone && <section>{openingView}</section>}
+        </section>
+      );
+    }
+  }
 
   function handleThemeChange(event) {
     const theme = event.target.value;
@@ -149,13 +168,18 @@ const StudyBoard = () => {
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
       });
     }
-    if (theme === "random") {
-      // getTheme();
+    if (theme === "neon") {
+      setColorTheme({
+        light: { backgroundColor: "rgb(220, 242, 132)" },
+        dark: { backgroundColor: "rgb(230, 74, 196)" },
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(49, 191, 236)" },
+      });
     }
   }
 
   return (
     <main>
+      <section>{handleView()}</section>
       <section>
         <Chessboard
           position={game.fen()}
@@ -176,7 +200,7 @@ const StudyBoard = () => {
           <option value="blue">Blue</option>
           <option value="rose">Rose</option>
           <option value="mint">Mint</option>
-          <option value="random">Random</option>
+          <option value="neon">Neon</option>
         </select>
       </label>
       <label>
