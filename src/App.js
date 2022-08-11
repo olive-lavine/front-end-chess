@@ -27,14 +27,14 @@ export default function App() {
           setSelectedBoard("PlayBoard");
         }}
       >
-        play?
+        play
       </button>
       <button
         onClick={() => {
           setSelectedBoard("StudyBoard");
         }}
       >
-        practice?
+        practice
       </button>
       <section>{getSelectedBoard()}</section>
       <section id="footer">
