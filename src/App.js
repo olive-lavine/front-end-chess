@@ -38,7 +38,7 @@ export default function App() {
               component="div"
               sx={{ flexGrow: 1 }}
             >
-              Opening Knights
+              Opening Knight
             </Typography>
             <Button
               onClick={() => {

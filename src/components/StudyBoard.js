@@ -1,10 +1,22 @@
 import Chessboard from "chessboardjsx";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chess } from "chess.js";
 import useSound from "use-sound";
 import axios from "axios";
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
+
+const getOpeningsAsync = () => {
+  return axios
+    .get(kBaseUrl)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error("error getting starting openings");
+    });
+};
 
 const StudyBoard = () => {
   const chess = new Chess();
@@ -25,20 +37,9 @@ const StudyBoard = () => {
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
-  const [sound, setSound] = useState("");
-  const moveSound = new Audio(sound);
+  const [sound, setSound] = useState("./sounds/space.mp3");
+  const moveSound = useMemo(() => new Audio(sound), [sound]);
 
-  const getOpeningsAsync = () => {
-    return axios
-      .get(kBaseUrl)
-      .then((response) => {
-        return response.data;
-      })
-      .catch((err) => {
-        console.log(err);
-        throw new Error("error getting starting openings");
-      });
-  };
   const getNextOpeningsAsync = (parentId) => {
     return axios
       .get(`${kBaseUrl}/${parentId}`)
@@ -75,7 +76,7 @@ const StudyBoard = () => {
     getStartingOpenings();
   }, []);
 
-  const cpu_moves = () => {
+  const cpu_moves = useCallback(() => {
     const gameCopy = { ...game };
     setTimeout(() => {
       gameCopy.move(selectedOpeningMoves[moveCount]);
@@ -88,26 +89,28 @@ const StudyBoard = () => {
         setMessage("Out of book, but follow your curiosity...");
       }
     }, 200);
-    // setTimeout(() => {
-    //   moveSound.play();
-    // }, 400);
-    // moveSound.play();
-  };
+    setTimeout(() => {
+      moveSound.play();
+    }, 800);
+  }, [game, moveSound, moveCount, hasChild, selectedOpeningMoves]);
+
+  useEffect(() => {
+    if (
+      orientation === "white" &&
+      game.turn() === "b" &&
+      moveCount < selectedOpeningMoves.length
+    ) {
+      cpu_moves();
+    } else if (
+      orientation === "black" &&
+      game.turn() === "w" &&
+      moveCount < selectedOpeningMoves.length
+    ) {
+      cpu_moves();
+    }
+  }, [moveCount, game, orientation, selectedOpeningMoves, cpu_moves]);
 
   // Handles CPU making the correct opening moves
-  if (
-    orientation === "white" &&
-    game.turn() === "b" &&
-    moveCount < selectedOpeningMoves.length
-  ) {
-    cpu_moves();
-  } else if (
-    orientation === "black" &&
-    game.turn() === "w" &&
-    moveCount < selectedOpeningMoves.length
-  ) {
-    cpu_moves();
-  }
 
   function onDrop({ sourceSquare, targetSquare }) {
     if (selectedOpeningMoves.length === 0) {
@@ -145,7 +148,9 @@ const StudyBoard = () => {
       const gameCopy = { ...game };
       gameCopy.move({ from: sourceSquare, to: targetSquare });
       setMessage("Out of book, but follow your curiosity...");
+      moveSound.play();
       setGame(gameCopy);
+      setMoveCount(moveCount + 1);
     }
     // } else {
     //   setMessage("xxOut of book, but follow your curiosity...");

@@ -95,31 +95,19 @@ const PlayBoard = () => {
   return (
     <main>
       <Grid container spacing={2}>
-        <section>
-          <Chessboard
-            position={game.fen()}
-            onDrop={onDrop}
-            orientation={orientation}
-            darkSquareStyle={colorTheme.dark}
-            lightSquareStyle={colorTheme.light}
-            dropSquareStyle={colorTheme.drop}
-          />
-        </section>
-        <h2>{message}</h2>
-
         <Grid>
-          <Button onClick={handleReset} variant="outlined" size="small">
-            start over
-          </Button>
-          <Button onClick={handleUndo} variant="outlined" size="small">
-            ⇐
-          </Button>
-          <Button onClick={handleFlip} variant="outlined" size="small">
-            flip
-          </Button>
-        </Grid>
-        <Grid>
-          <FormControl sx={{ minWidth: 120 }} size="small" margin="dense">
+          <section>
+            <Chessboard
+              position={game.fen()}
+              onDrop={onDrop}
+              orientation={orientation}
+              darkSquareStyle={colorTheme.dark}
+              lightSquareStyle={colorTheme.light}
+              dropSquareStyle={colorTheme.drop}
+            />
+          </section>
+          <h2>{message}</h2>
+          <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
             <InputLabel>colors</InputLabel>
             <Select onChange={handleThemeChange}>
               <MenuItem value="blue">Blue</MenuItem>
@@ -128,6 +116,25 @@ const PlayBoard = () => {
               <MenuItem value="neon">Neon</MenuItem>
             </Select>
           </FormControl>
+        </Grid>
+        <Grid
+          sx={{
+            display: "flex",
+            "& > *": {
+              ml: 1,
+            },
+          }}
+        >
+          <ButtonGroup
+            variant="outlined"
+            orientation="vertical"
+            size="small"
+            aria-label="small button group"
+          >
+            <Button onClick={handleReset}>start over</Button>
+            <Button onClick={handleUndo}>⇐</Button>
+            <Button onClick={handleFlip}>flip</Button>
+          </ButtonGroup>
         </Grid>
       </Grid>
       <section>{game.pgn()}</section>
