@@ -13,12 +13,13 @@ const StudyBoard = () => {
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
   const [openings, setOpenings] = useState([]);
-  const [openingView, setOpeningView] = useState("");
+  const [openingPgn, setOpeningPgn] = useState("");
   const [openingName, setOpeningName] = useState("");
   const [isShown, setIsShown] = useState(false);
   const [hasChild, setHasChild] = useState(false);
-  const [selectedOpening, setSelectedOpening] = useState("");
-  const [openingHistory, setOpeningHistory] = useState([]);
+  const [selectedOpeningMoves, setSelectedOpeningMoves] = useState([]);
+  const [idHistory, setIdHistory] = useState([]);
+  const [openingHistory, setOpeningHistory] = useState({});
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
@@ -75,60 +76,68 @@ const StudyBoard = () => {
   const cpu_moves = () => {
     const gameCopy = { ...game };
     setTimeout(() => {
-      gameCopy.move(selectedOpening[moveCount]);
+      gameCopy.move(selectedOpeningMoves[moveCount]);
       setGame(gameCopy);
-      setMoveCount(moveCount + 1);
-    }, 200);
 
-    if (moveCount === selectedOpening.length && hasChild) {
-      setMessage("Choose continuation");
-    }
+      const newMoveCount = moveCount + 1;
+      setMoveCount(newMoveCount);
+      if (newMoveCount === selectedOpeningMoves.length && hasChild) {
+        setMessage("Choose continuation");
+      } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
+        setMessage("Out of book, but follow your curiosity...");
+      }
+    }, 200);
   };
 
   // Handles CPU making the correct opening moves
   if (
     orientation === "white" &&
     game.turn() === "b" &&
-    moveCount < selectedOpening.length
+    moveCount < selectedOpeningMoves.length
   ) {
     cpu_moves();
   } else if (
     orientation === "black" &&
     game.turn() === "w" &&
-    moveCount < selectedOpening.length
+    moveCount < selectedOpeningMoves.length
   ) {
     cpu_moves();
-    // if (moveCount === selectedOpening.length && hasChild) {
-    //   setMessage("Choose continuation");
-    // }
   }
 
   function onDrop({ sourceSquare, targetSquare }) {
-    if (!selectedOpening) {
+    if (selectedOpeningMoves.length === 0) {
       setMessage("select an opening!");
       return;
     }
     setMessage("");
     const gameCopy = { ...game };
     const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
-    if (moveCount < selectedOpening.length) {
+    if (moveCount < selectedOpeningMoves.length) {
       if (!move) {
         return;
       }
-      if (move.san !== selectedOpening[moveCount]) {
+      if (move.san !== selectedOpeningMoves[moveCount]) {
         gameCopy.undo();
         setMessage("Try again... ");
       }
-      if (move.san === selectedOpening[moveCount]) {
+      if (move.san === selectedOpeningMoves[moveCount]) {
         setGame(gameCopy);
-        setMoveCount(moveCount + 1);
-        if (moveCount === selectedOpening.length - 1 && hasChild) {
+        const newMoveCount = moveCount + 1;
+        setMoveCount(newMoveCount);
+        if (newMoveCount === selectedOpeningMoves.length && hasChild) {
           setMessage("Choose continuation");
+        } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
+          setMessage("Out of book, but follow your curiosity...");
         }
       }
       if (game.in_check()) {
         setMessage("check");
       }
+      // } else if (moveCount === selectedOpeningMoves.length && hasChild) {
+      //   gameCopy.undo();
+      //   setMessage("Choose continuation");
+      // } else if (moveCount === selectedOpeningMoves.length - 1 && !hasChild) {
+      //   setMessage("Out of book, but follow your curiosity...");
     } else {
       setMessage("Out of book, but follow your curiosity...");
       setGame(gameCopy);
@@ -136,22 +145,27 @@ const StudyBoard = () => {
   }
 
   function handleReset() {
-    setMessage("");
     const gameCopy = { ...game };
     gameCopy.reset();
     setGame(gameCopy);
     setMoveCount(0);
+    setMessage("");
+    setSelectedOpeningMoves([]);
+    setOpeningName("");
+    setOpeningPgn("");
+    setOpeningHistory({});
+    setIdHistory([]);
     getStartingOpenings();
-    setSelectedOpening("");
   }
-
   function handleUndo() {
     setMessage("");
     const gameCopy = { ...game };
     gameCopy.undo();
-    gameCopy.undo();
-    if (moveCount > 0) {
+    if (moveCount <= selectedOpeningMoves.length && moveCount > 0) {
+      gameCopy.undo();
       setMoveCount(moveCount - 2);
+    } else if (moveCount > 0) {
+      setMoveCount(moveCount - 1);
     }
     setGame(gameCopy);
   }
@@ -162,20 +176,27 @@ const StudyBoard = () => {
 
   const handleOpeningChange = (event) => {
     setMessage("");
-    let openingId = parseInt(event.target.value);
-    const updatedHistory = [...openingHistory, openingId];
-    setOpeningHistory(updatedHistory);
+    const openingId = parseInt(event.target.value);
+    const updatedIdHistory = [...idHistory, openingId];
+    setIdHistory(updatedIdHistory);
 
     // find selected opening
     let opening = "";
+    const historyCopy = { ...openingHistory };
     for (let i = 0; i < openings.length; i++) {
       if (openings[i].id === openingId) {
         opening = openings[i];
-        setOpeningView(opening.pgn);
+        setOpeningPgn(opening.pgn);
         setHasChild(opening.hasChild);
         setOpeningName(opening.name);
+        historyCopy[openingId] = {
+          hasChild: opening.hasChild,
+          name: opening.name,
+          pgn: opening.pgn,
+        };
       }
     }
+    // transform pgn to list of moves
     let openingMoves = [];
     opening = opening.pgn.split(" ");
     for (let i = 0; i < opening.length; i++) {
@@ -183,12 +204,14 @@ const StudyBoard = () => {
         openingMoves.push(opening[i]);
       }
     }
-    setSelectedOpening(openingMoves);
+    setSelectedOpeningMoves(openingMoves);
+    historyCopy[openingId].moves = openingMoves;
+    setOpeningHistory(historyCopy);
     getNextOpenings(openingId);
   };
 
   function handleView() {
-    if (selectedOpening) {
+    if (selectedOpeningMoves.length > 0) {
       return (
         <section>
           <h2>{openingName}</h2>
@@ -200,24 +223,41 @@ const StudyBoard = () => {
             {!isShown && <section>view line</section>}
             {isShown && <section>hide line</section>}
           </button>
-          {isShown && <section>{openingView}</section>}
+          {isShown && <section>{openingPgn}</section>}
         </section>
       );
     }
   }
 
   function toggleOpenings() {
-    if (selectedOpening) {
-      console.log(openingHistory);
-
-      const previous = openingHistory[openingHistory.length - 1];
+    if (selectedOpeningMoves.length > 0) {
+      const previousId = idHistory[idHistory.length - 2];
+      const currentId = idHistory[idHistory.length - 1];
       return (
         <section>
           <button
             onClick={() => {
-              getNextOpenings(previous);
-              const historyCopy = [...openingHistory];
+              if (previousId) {
+                getNextOpenings(previousId);
+                setOpeningPgn(openingHistory[previousId].pgn);
+                setOpeningName(openingHistory[previousId].name);
+                setSelectedOpeningMoves(openingHistory[previousId].moves);
+                setHasChild(openingHistory[previousId].hasChild);
+              } else {
+                // call handle reset instead?
+                getStartingOpenings();
+                setOpeningPgn("");
+                setOpeningName("");
+                setSelectedOpeningMoves("");
+              }
+              // remove opening from history
+              const idHistoryCopy = [...idHistory];
+              idHistoryCopy.pop();
+              setIdHistory(idHistoryCopy);
+              const historyCopy = { ...openingHistory };
+              delete historyCopy[currentId];
               setOpeningHistory(historyCopy);
+              handleUndo();
             }}
           >
             previous openings ⇐
@@ -260,7 +300,7 @@ const StudyBoard = () => {
   }
 
   return (
-    <main>
+    <main class="jumbotron jumbotron-fluid">
       <section>{handleView()}</section>
       <section>
         <Chessboard

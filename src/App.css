@@ -1,9 +1,11 @@
-.App {
-  text-align: center;
-}
 
 #footer {
   position: fixed;
   bottom: 0;
   padding: 1%;
+}
+
+body {
+  background: #E8E5DE;
+  font-family: serif;
 }
