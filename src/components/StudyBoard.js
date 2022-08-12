@@ -25,6 +25,8 @@ const StudyBoard = () => {
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
+  const [sound, setSound] = useState("");
+  const moveSound = new Audio(sound);
 
   const getOpeningsAsync = () => {
     return axios
@@ -78,7 +80,6 @@ const StudyBoard = () => {
     setTimeout(() => {
       gameCopy.move(selectedOpeningMoves[moveCount]);
       setGame(gameCopy);
-
       const newMoveCount = moveCount + 1;
       setMoveCount(newMoveCount);
       if (newMoveCount === selectedOpeningMoves.length && hasChild) {
@@ -87,6 +88,10 @@ const StudyBoard = () => {
         setMessage("Out of book, but follow your curiosity...");
       }
     }, 200);
+    // setTimeout(() => {
+    //   moveSound.play();
+    // }, 400);
+    // moveSound.play();
   };
 
   // Handles CPU making the correct opening moves
@@ -122,6 +127,7 @@ const StudyBoard = () => {
       }
       if (move.san === selectedOpeningMoves[moveCount]) {
         setGame(gameCopy);
+        moveSound.play();
         const newMoveCount = moveCount + 1;
         setMoveCount(newMoveCount);
         if (newMoveCount === selectedOpeningMoves.length && hasChild) {
@@ -133,14 +139,12 @@ const StudyBoard = () => {
       if (game.in_check()) {
         setMessage("check");
       }
-      // } else if (moveCount === selectedOpeningMoves.length && hasChild) {
-      //   gameCopy.undo();
-      //   setMessage("Choose continuation");
-      // } else if (moveCount === selectedOpeningMoves.length - 1 && !hasChild) {
-      //   setMessage("Out of book, but follow your curiosity...");
-    } else {
-      setMessage("Out of book, but follow your curiosity...");
+    } else if (moveCount > selectedOpeningMoves.length) {
+      setMessage("xxOut of book, but follow your curiosity...");
       setGame(gameCopy);
+      // if (move) {
+      //   moveSound.play();
+      // }
     }
   }
 
@@ -275,6 +279,7 @@ const StudyBoard = () => {
         dark: { backgroundColor: "rgb(141, 171, 215)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
       });
+      setSound("");
     }
     if (theme === "rose") {
       setColorTheme({
@@ -282,6 +287,7 @@ const StudyBoard = () => {
         dark: { backgroundColor: "rgb(148, 107, 107)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
       });
+      setSound("./sounds/wood.mp3");
     }
     if (theme === "mint") {
       setColorTheme({
@@ -296,6 +302,7 @@ const StudyBoard = () => {
         dark: { backgroundColor: "rgb(230, 74, 196)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(49, 191, 236)" },
       });
+      setSound("./sounds/space.mp3");
     }
   }
 

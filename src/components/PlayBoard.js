@@ -12,12 +12,19 @@ const PlayBoard = () => {
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
+  const [sound, setSound] = useState("");
+
+  const moveSound = new Audio(sound);
 
   function onDrop({ sourceSquare, targetSquare }) {
     setMessage("");
     const gameCopy = { ...game };
-    gameCopy.move({ from: sourceSquare, to: targetSquare });
+    const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
     setGame(gameCopy);
+    if (move) {
+      moveSound.play();
+    }
+
     if (game.in_check()) {
       setMessage("check");
     }
@@ -50,6 +57,7 @@ const PlayBoard = () => {
         dark: { backgroundColor: "rgb(141, 171, 215)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
       });
+      setSound("");
     }
     if (theme === "rose") {
       setColorTheme({
@@ -57,6 +65,7 @@ const PlayBoard = () => {
         dark: { backgroundColor: "rgb(148, 107, 107)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
       });
+      setSound("./sounds/wood.mp3");
     }
     if (theme === "mint") {
       setColorTheme({
@@ -64,6 +73,7 @@ const PlayBoard = () => {
         dark: { backgroundColor: "rgb(215, 180, 228)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
       });
+      setSound("./sounds/glass.mp3");
     }
     if (theme === "neon") {
       setColorTheme({
@@ -71,6 +81,7 @@ const PlayBoard = () => {
         dark: { backgroundColor: "rgb(230, 74, 196)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(220, 242, 132)" },
       });
+      setSound("./sounds/space.mp3");
     }
   }
 
