@@ -1,6 +1,13 @@
 import Chessboard from "chessboardjsx";
 import { useState } from "react";
 import { Chess } from "chess.js";
+import Button from "@mui/material/Button";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Grid from "@mui/material/Grid";
+import ButtonGroup from "@mui/material/ButtonGroup";
 
 const PlayBoard = () => {
   const chess = new Chess();
@@ -87,29 +94,42 @@ const PlayBoard = () => {
 
   return (
     <main>
-      <section>
-        <Chessboard
-          position={game.fen()}
-          onDrop={onDrop}
-          orientation={orientation}
-          darkSquareStyle={colorTheme.dark}
-          lightSquareStyle={colorTheme.light}
-          dropSquareStyle={colorTheme.drop}
-        />
-      </section>
-      <h2>{message}</h2>
-      <button onClick={handleReset}>START OVER</button>
-      <button onClick={handleUndo}>⇐</button>
-      <button onClick={handleFlip}>FLIP</button>
-      <label>
-        BOARD COLORS
-        <select onChange={handleThemeChange}>
-          <option value="blue">Blue</option>
-          <option value="rose">Rose</option>
-          <option value="mint">Mint</option>
-          <option value="neon">Neon</option>
-        </select>
-      </label>
+      <Grid container spacing={2}>
+        <section>
+          <Chessboard
+            position={game.fen()}
+            onDrop={onDrop}
+            orientation={orientation}
+            darkSquareStyle={colorTheme.dark}
+            lightSquareStyle={colorTheme.light}
+            dropSquareStyle={colorTheme.drop}
+          />
+        </section>
+        <h2>{message}</h2>
+
+        <Grid>
+          <Button onClick={handleReset} variant="outlined" size="small">
+            start over
+          </Button>
+          <Button onClick={handleUndo} variant="outlined" size="small">
+            ⇐
+          </Button>
+          <Button onClick={handleFlip} variant="outlined" size="small">
+            flip
+          </Button>
+        </Grid>
+        <Grid>
+          <FormControl sx={{ minWidth: 120 }} size="small" margin="dense">
+            <InputLabel>colors</InputLabel>
+            <Select onChange={handleThemeChange}>
+              <MenuItem value="blue">Blue</MenuItem>
+              <MenuItem value="rose">Rose</MenuItem>
+              <MenuItem value="mint">Mint</MenuItem>
+              <MenuItem value="neon">Neon</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
       <section>{game.pgn()}</section>
     </main>
   );

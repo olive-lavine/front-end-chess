@@ -3,6 +3,13 @@ import PlayBoard from "./components/PlayBoard";
 import StudyBoard from "./components/StudyBoard";
 import About from "./components/About";
 import Container from "@mui/material/Container";
+import AppBar from "@mui/material/AppBar";
+import Typography from "@mui/material/Typography";
+import Toolbar from "@mui/material/Toolbar";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import "./App.css";
 
 export default function App() {
@@ -19,32 +26,51 @@ export default function App() {
 
   return (
     <main>
-      <section class="nav justify-content-end">
-        <h1>Opening Knights</h1>
-        <button
-          onClick={() => {
-            setSelectedPage("PlayBoard");
-          }}
+      <Container sx={{ backgroundColor: "rgb(232, 229, 222)" }}>
+        <AppBar
+          sx={{ backgroundColor: "rgb(232, 229, 222)", color: "#173A5E" }}
         >
-          play
-        </button>
-        <button
-          onClick={() => {
-            setSelectedPage("StudyBoard");
-          }}
-        >
-          practice
-        </button>{" "}
-        <button
-          onClick={() => {
-            setSelectedPage("About");
-          }}
-        >
-          about
-        </button>
-      </section>
-
-      <section>{getSelectedPage()}</section>
+          {/* <section class="nav justify-content-end"> */}
+          <Toolbar>
+            <Typography
+              fontFamily="serif"
+              variant="h4"
+              component="div"
+              sx={{ flexGrow: 1 }}
+            >
+              Opening Knights
+            </Typography>
+            <Button
+              onClick={() => {
+                setSelectedPage("PlayBoard");
+              }}
+              color="inherit"
+            >
+              play
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedPage("StudyBoard");
+              }}
+              color="inherit"
+            >
+              practice
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedPage("About");
+              }}
+              color="inherit"
+            >
+              about
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Toolbar />
+        <Toolbar />
+        <Box>{getSelectedPage()}</Box>
+      </Container>
     </main>
   );
 }
+// display:"flex" justifyContent="center" alignItems="center"

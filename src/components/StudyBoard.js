@@ -115,9 +115,9 @@ const StudyBoard = () => {
       return;
     }
     setMessage("");
-    const gameCopy = { ...game };
-    const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
     if (moveCount < selectedOpeningMoves.length) {
+      const gameCopy = { ...game };
+      const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
       if (!move) {
         return;
       }
@@ -139,13 +139,21 @@ const StudyBoard = () => {
       if (game.in_check()) {
         setMessage("check");
       }
-    } else if (moveCount > selectedOpeningMoves.length) {
-      setMessage("xxOut of book, but follow your curiosity...");
+    } else if (moveCount >= selectedOpeningMoves.length && hasChild) {
+      setMessage("Choose continuation");
+    } else if (moveCount >= selectedOpeningMoves.length && !hasChild) {
+      const gameCopy = { ...game };
+      gameCopy.move({ from: sourceSquare, to: targetSquare });
+      setMessage("Out of book, but follow your curiosity...");
       setGame(gameCopy);
-      // if (move) {
-      //   moveSound.play();
-      // }
     }
+    // } else {
+    //   setMessage("xxOut of book, but follow your curiosity...");
+    //   setGame(gameCopy);
+    //   // if (move) {
+    //   //   moveSound.play();
+    //   // }
+    // }
   }
 
   function handleReset() {
@@ -307,7 +315,7 @@ const StudyBoard = () => {
   }
 
   return (
-    <main class="jumbotron jumbotron-fluid">
+    <main>
       <section>{handleView()}</section>
       <section>
         <Chessboard
