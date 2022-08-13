@@ -6,18 +6,6 @@ import axios from "axios";
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
 
-const getOpeningsAsync = () => {
-  return axios
-    .get(kBaseUrl)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((err) => {
-      console.log(err);
-      throw new Error("error getting starting openings");
-    });
-};
-
 const StudyBoard = () => {
   const chess = new Chess();
   const [game, setGame] = useState(chess);
@@ -37,10 +25,10 @@ const StudyBoard = () => {
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
-  const [sound, setSound] = useState("./sounds/space.mp3");
+  const [sound, setSound] = useState("");
   const moveSound = useMemo(() => new Audio(sound), [sound]);
 
-  const getNextOpeningsAsync = (parentId) => {
+  const getOpeningsAsync = (parentId) => {
     return axios
       .get(`${kBaseUrl}/${parentId}`)
       .then((response) => {
@@ -52,18 +40,8 @@ const StudyBoard = () => {
       });
   };
 
-  const getStartingOpenings = () => {
-    getOpeningsAsync()
-      .then((openings) => {
-        setOpenings(openings);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const getNextOpenings = (parentId) => {
-    getNextOpeningsAsync(parentId)
+  const getOpenings = (parentId) => {
+    getOpeningsAsync(parentId)
       .then((openings) => {
         setOpenings(openings);
       })
@@ -73,7 +51,7 @@ const StudyBoard = () => {
   };
 
   useEffect(() => {
-    getStartingOpenings();
+    getOpenings("");
   }, []);
 
   const cpu_moves = useCallback(() => {
@@ -94,6 +72,7 @@ const StudyBoard = () => {
     }, 800);
   }, [game, moveSound, moveCount, hasChild, selectedOpeningMoves]);
 
+  // Handles CPU making the correct opening moves
   useEffect(() => {
     if (
       orientation === "white" &&
@@ -109,8 +88,6 @@ const StudyBoard = () => {
       cpu_moves();
     }
   }, [moveCount, game, orientation, selectedOpeningMoves, cpu_moves]);
-
-  // Handles CPU making the correct opening moves
 
   function onDrop({ sourceSquare, targetSquare }) {
     if (selectedOpeningMoves.length === 0) {
@@ -152,13 +129,6 @@ const StudyBoard = () => {
       setGame(gameCopy);
       setMoveCount(moveCount + 1);
     }
-    // } else {
-    //   setMessage("xxOut of book, but follow your curiosity...");
-    //   setGame(gameCopy);
-    //   // if (move) {
-    //   //   moveSound.play();
-    //   // }
-    // }
   }
 
   function handleReset() {
@@ -172,7 +142,7 @@ const StudyBoard = () => {
     setOpeningPgn("");
     setOpeningHistory({});
     setIdHistory([]);
-    getStartingOpenings();
+    getOpenings("");
   }
   function handleUndo() {
     setMessage("");
@@ -224,7 +194,7 @@ const StudyBoard = () => {
     setSelectedOpeningMoves(openingMoves);
     historyCopy[openingId].moves = openingMoves;
     setOpeningHistory(historyCopy);
-    getNextOpenings(openingId);
+    getOpenings(openingId);
   };
 
   function handleView() {
@@ -255,14 +225,14 @@ const StudyBoard = () => {
           <button
             onClick={() => {
               if (previousId) {
-                getNextOpenings(previousId);
+                getOpenings(previousId);
                 setOpeningPgn(openingHistory[previousId].pgn);
                 setOpeningName(openingHistory[previousId].name);
                 setSelectedOpeningMoves(openingHistory[previousId].moves);
                 setHasChild(openingHistory[previousId].hasChild);
               } else {
                 // call handle reset instead?
-                getStartingOpenings();
+                getOpenings("");
                 setOpeningPgn("");
                 setOpeningName("");
                 setSelectedOpeningMoves("");

@@ -1,4 +1,5 @@
 import Chessboard from "chessboardjsx";
+import axios from "axios";
 import { useState } from "react";
 import { Chess } from "chess.js";
 import Button from "@mui/material/Button";
@@ -9,11 +10,17 @@ import Select from "@mui/material/Select";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
+const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
+
 const PlayBoard = () => {
   const chess = new Chess();
   const [game, setGame] = useState(chess);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
+  const [opening, setOpening] = useState("");
+  const [topMoves, setTopMoves] = useState([]);
+  const [uci, setUci] = useState("");
+  const [isShown, setIsShown] = useState(false);
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
@@ -23,15 +30,53 @@ const PlayBoard = () => {
 
   const moveSound = new Audio(sound);
 
+  const getOpeningNameAsync = (uci) => {
+    return axios
+      .get(`${kBaseUrl}${uci}&moves=5&topGames=0`)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error("error getting opening");
+      });
+  };
+
+  const getOpening = (uci) => {
+    getOpeningNameAsync(uci)
+      .then((response) => {
+        if (response.opening) {
+          setOpening(response.opening.name);
+        }
+        const movesList = [];
+        for (const move of response.moves) {
+          movesList.push({ san: move.san, uci: move.uci });
+        }
+        setTopMoves(movesList);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   function onDrop({ sourceSquare, targetSquare }) {
     setMessage("");
     const gameCopy = { ...game };
     const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
     setGame(gameCopy);
     if (move) {
-      moveSound.play();
+      if (sound) {
+        moveSound.play();
+      }
+      const uciMove = `${sourceSquare}${targetSquare}`;
+      if (!uci) {
+        setUci(uciMove);
+        getOpening(uciMove);
+      } else {
+        setUci(`${uci},${uciMove}`);
+        getOpening(`${uci},${uciMove}`);
+      }
     }
-
     if (game.in_check()) {
       setMessage("check");
     }
@@ -40,16 +85,77 @@ const PlayBoard = () => {
     }
   }
 
+  function displayTopMoves() {
+    if (topMoves.length === 0) {
+      getOpening("");
+    }
+    const moves = topMoves.map((move) => (
+      <Button
+        key={move.san}
+        onClick={() => {
+          handleMoveClick(move.uci);
+        }}
+      >
+        {move.san}
+      </Button>
+    ));
+    return (
+      <section>
+        <Button
+          onClick={() => {
+            setIsShown((current) => !current);
+          }}
+        >
+          {!isShown && <section>view top moves</section>}
+          {isShown && <section>hide top moves</section>}
+        </Button>
+        {isShown && (
+          <ButtonGroup size="small" aria-label="small button group">
+            {moves}
+          </ButtonGroup>
+        )}
+      </section>
+    );
+  }
+
+  function handleMoveClick(chosenMove) {
+    if (chosenMove === "e1h1") {
+      onDrop({
+        sourceSquare: "e1",
+        targetSquare: "g1",
+      });
+    }
+    if (chosenMove === "e8h8") {
+      onDrop({
+        sourceSquare: "e8",
+        targetSquare: "g8",
+      });
+    }
+    onDrop({
+      sourceSquare: chosenMove.slice(0, 2),
+      targetSquare: chosenMove.slice(2),
+    });
+  }
+
   function handleReset() {
     const gameCopy = { ...game };
     gameCopy.reset();
     setGame(gameCopy);
+    setUci("");
+    setOpening("");
+    setTopMoves([]);
   }
 
   function handleUndo() {
     const gameCopy = { ...game };
     gameCopy.undo();
     setGame(gameCopy);
+    setUci(uci.slice(0, -5));
+    if (uci.slice(0, -5)) {
+      getOpening(uci.slice(0, -5));
+    } else {
+      handleReset();
+    }
   }
 
   function handleFlip() {
@@ -97,6 +203,7 @@ const PlayBoard = () => {
       <Grid container spacing={2}>
         <Grid>
           <section>
+            <section>{opening}</section>
             <Chessboard
               position={game.fen()}
               onDrop={onDrop}
@@ -109,7 +216,7 @@ const PlayBoard = () => {
           <h2>{message}</h2>
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
             <InputLabel>colors</InputLabel>
-            <Select onChange={handleThemeChange}>
+            <Select onChange={handleThemeChange} value="">
               <MenuItem value="blue">Blue</MenuItem>
               <MenuItem value="rose">Rose</MenuItem>
               <MenuItem value="mint">Mint</MenuItem>
@@ -135,6 +242,7 @@ const PlayBoard = () => {
             <Button onClick={handleUndo}>⇐</Button>
             <Button onClick={handleFlip}>flip</Button>
           </ButtonGroup>
+          <Grid>{displayTopMoves()}</Grid>
         </Grid>
       </Grid>
       <section>{game.pgn()}</section>
@@ -143,3 +251,21 @@ const PlayBoard = () => {
 };
 
 export default PlayBoard;
+
+// stateHistory = [
+//   {
+//     opening:
+//     topMoves:
+//     uci:
+//   },
+
+// ]
+
+// const updatedHistory = [...openingHistory, response.opening.name];
+// setOpeningHistory(updatedHistory);
+
+// const historyCopy = [...openingHistory];
+// historyCopy.pop();
+// setOpeningHistory(historyCopy);
+// setOpening(historyCopy[historyCopy.length - 1]);
+// const [openingHistory, setOpeningHistory] = useState([]);
