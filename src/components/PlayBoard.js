@@ -19,8 +19,11 @@ const PlayBoard = () => {
   const [message, setMessage] = useState("");
   const [opening, setOpening] = useState("");
   const [topMoves, setTopMoves] = useState([]);
+  const [book, setBook] = useState(true);
+  const [bookMessage, setBookMessage] = useState("");
   const [uci, setUci] = useState("");
   const [isShown, setIsShown] = useState(false);
+  const [moveCount, setMoveCount] = useState(0);
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
@@ -30,7 +33,7 @@ const PlayBoard = () => {
 
   const moveSound = new Audio(sound);
 
-  const getOpeningNameAsync = (uci) => {
+  const getOpeningAsync = (uci) => {
     return axios
       .get(`${kBaseUrl}${uci}&moves=5&topGames=0`)
       .then((response) => {
@@ -43,16 +46,22 @@ const PlayBoard = () => {
   };
 
   const getOpening = (uci) => {
-    getOpeningNameAsync(uci)
+    getOpeningAsync(uci)
       .then((response) => {
         if (response.opening) {
           setOpening(response.opening.name);
         }
-        const movesList = [];
-        for (const move of response.moves) {
-          movesList.push({ san: move.san, uci: move.uci });
+        if (response.moves.length > 0) {
+          const movesList = [];
+          for (const move of response.moves) {
+            movesList.push({ san: move.san, uci: move.uci });
+          }
+          setTopMoves(movesList);
+          setBook(true);
+        } else {
+          setTopMoves([]);
+          setBook(false);
         }
-        setTopMoves(movesList);
       })
       .catch((err) => {
         console.log(err);
@@ -65,16 +74,22 @@ const PlayBoard = () => {
     const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
     setGame(gameCopy);
     if (move) {
+      setMoveCount(moveCount + 1);
       if (sound) {
         moveSound.play();
       }
-      const uciMove = `${sourceSquare}${targetSquare}`;
-      if (!uci) {
-        setUci(uciMove);
-        getOpening(uciMove);
+      if (book) {
+        setBookMessage("");
+        const uciMove = `${sourceSquare}${targetSquare}`;
+        if (!uci) {
+          setUci(uciMove);
+          getOpening(uciMove);
+        } else {
+          setUci(`${uci},${uciMove}`);
+          getOpening(`${uci},${uciMove}`);
+        }
       } else {
-        setUci(`${uci},${uciMove}`);
-        getOpening(`${uci},${uciMove}`);
+        setBookMessage("Out of book, but follow your curiosity...");
       }
     }
     if (game.in_check()) {
@@ -86,7 +101,7 @@ const PlayBoard = () => {
   }
 
   function displayTopMoves() {
-    if (topMoves.length === 0) {
+    if (!moveCount) {
       getOpening("");
     }
     const moves = topMoves.map((move) => (
@@ -131,6 +146,18 @@ const PlayBoard = () => {
         targetSquare: "g8",
       });
     }
+    if (chosenMove === "e1a1") {
+      onDrop({
+        sourceSquare: "e1",
+        targetSquare: "c1",
+      });
+    }
+    if (chosenMove === "e8a8") {
+      onDrop({
+        sourceSquare: "e8",
+        targetSquare: "c8",
+      });
+    }
     onDrop({
       sourceSquare: chosenMove.slice(0, 2),
       targetSquare: chosenMove.slice(2),
@@ -144,12 +171,16 @@ const PlayBoard = () => {
     setUci("");
     setOpening("");
     setTopMoves([]);
+    setMoveCount(0);
+    setMessage("");
+    setBookMessage("");
   }
 
   function handleUndo() {
     const gameCopy = { ...game };
     gameCopy.undo();
     setGame(gameCopy);
+    setMoveCount(moveCount - 1);
     setUci(uci.slice(0, -5));
     if (uci.slice(0, -5)) {
       getOpening(uci.slice(0, -5));
@@ -214,6 +245,7 @@ const PlayBoard = () => {
             />
           </section>
           <h2>{message}</h2>
+          <h3>{bookMessage}</h3>
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
             <InputLabel>colors</InputLabel>
             <Select onChange={handleThemeChange} value="">

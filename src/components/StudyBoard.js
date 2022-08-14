@@ -1,8 +1,14 @@
 import Chessboard from "chessboardjsx";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chess } from "chess.js";
-import useSound from "use-sound";
 import axios from "axios";
+import Button from "@mui/material/Button";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Grid from "@mui/material/Grid";
+import ButtonGroup from "@mui/material/ButtonGroup";
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
 
@@ -303,29 +309,35 @@ const StudyBoard = () => {
         />
       </section>
       <h2>{message}</h2>
-      <button onClick={handleReset}>START OVER</button>
-      <button onClick={handleUndo}>⇐</button>
-      <button onClick={handleFlip}>FLIP</button>
-      <label>
-        BOARD COLORS
-        <select onChange={handleThemeChange}>
-          <option value="blue">Blue</option>
-          <option value="rose">Rose</option>
-          <option value="mint">Mint</option>
-          <option value="neon">Neon</option>
-        </select>
-      </label>
-      <label>
-        OPENINGS
-        <select onChange={handleOpeningChange}>
-          <option value="">--select an opening--</option>
+      <ButtonGroup
+        variant="outlined"
+        orientation="vertical"
+        size="small"
+        aria-label="small button group"
+      >
+        <Button onClick={handleReset}>start over</Button>
+        <Button onClick={handleUndo}>⇐</Button>
+        <Button onClick={handleFlip}>flip</Button>
+      </ButtonGroup>
+      <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+        <InputLabel>colors</InputLabel>
+        <Select onChange={handleThemeChange} value="">
+          <MenuItem value="blue">Blue</MenuItem>
+          <MenuItem value="rose">Rose</MenuItem>
+          <MenuItem value="mint">Mint</MenuItem>
+          <MenuItem value="neon">Neon</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+        <InputLabel>openings</InputLabel>
+        <Select onChange={handleOpeningChange} value="">
           {openings.map((opening) => (
-            <option key={opening.id} value={opening.id}>
+            <MenuItem key={opening.id} value={opening.id}>
               {opening.name}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </label>
+        </Select>
+      </FormControl>
       <section>{toggleOpenings()}</section>
       <section>{game.pgn()}</section>
     </main>
