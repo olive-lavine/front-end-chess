@@ -9,8 +9,10 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
+import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
+import { width } from "@mui/system";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
 
@@ -232,56 +234,60 @@ const PlayBoard = ({ player }) => {
   }
 
   return (
-    <main>
-      <Grid container spacing={2}>
-        <Grid item>
-          <Typography>{opening}</Typography>
-        </Grid>
-        <Grid item>
-          <Chessboard
-            position={game.fen()}
-            onDrop={onDrop}
-            orientation={orientation}
-            darkSquareStyle={colorTheme.dark}
-            lightSquareStyle={colorTheme.light}
-            dropSquareStyle={colorTheme.drop}
-          />
-          <Typography>{message}</Typography>
-          <Typography>{bookMessage}</Typography>
-          <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
-            <InputLabel>colors</InputLabel>
-            <Select onChange={handleThemeChange} value="">
-              <MenuItem value="blue">Blue</MenuItem>
-              <MenuItem value="rose">Rose</MenuItem>
-              <MenuItem value="mint">Mint</MenuItem>
-              <MenuItem value="neon">Neon</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid
-          item
-          sx={{
-            display: "flex",
-            "& > *": {
-              ml: 1,
-            },
-          }}
+    <Grid
+      container
+      justifyContent="space-around"
+      spacing={2}
+      sx={{ border: "1px dashed grey" }}
+    >
+      <Grid item xs={12} sx={{ height: "3vh", border: "1px dashed grey" }}>
+        <Typography>{opening}</Typography>
+      </Grid>
+      <Grid item xs={6.5} sx={{ border: "1px dashed grey" }}>
+        <Chessboard
+          position={game.fen()}
+          onDrop={onDrop}
+          orientation={orientation}
+          darkSquareStyle={colorTheme.dark}
+          lightSquareStyle={colorTheme.light}
+          dropSquareStyle={colorTheme.drop}
+        />
+        <FormControl
+          sx={{ mt: 1.5, minWidth: 120 }}
+          size="small"
+          margin="dense"
         >
-          <ButtonGroup
-            variant="outlined"
-            orientation="vertical"
-            size="small"
-            aria-label="small button group"
-          >
-            <Button onClick={handleReset}>start over</Button>
-            <Button onClick={handleUndo}>⇐</Button>
-            <Button onClick={handleFlip}>flip</Button>
-          </ButtonGroup>
-          <Grid item>{displayTopMoves()}</Grid>
+          <InputLabel>colors</InputLabel>
+          <Select onChange={handleThemeChange} value="">
+            <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="rose">Rose</MenuItem>
+            <MenuItem value="mint">Mint</MenuItem>
+            <MenuItem value="neon">Neon</MenuItem>
+          </Select>
+        </FormControl>
+        <Typography> {message}</Typography>
+        <Typography> {bookMessage}</Typography>
+      </Grid>
+      <Grid item xs={5.5} sx={{ border: "1px dashed grey" }}>
+        <ButtonGroup
+          variant="outlined"
+          orientation="vertical"
+          size="small"
+          aria-label="small button group"
+        >
+          <Button onClick={handleReset}>start over</Button>
+          <Button onClick={handleUndo}>⇐</Button>
+          <Button onClick={handleFlip}>flip</Button>
+        </ButtonGroup>
+        <Grid item sx={{ border: "1px dashed grey" }}>
+          {displayTopMoves()}
+        </Grid>
+
+        <Grid item sx={{ border: "1px dashed grey" }}>
+          {game.pgn()}
         </Grid>
       </Grid>
-      <section>{game.pgn()}</section>
-    </main>
+    </Grid>
   );
 };
 
@@ -304,3 +310,9 @@ export default PlayBoard;
 // setOpeningHistory(historyCopy);
 // setOpening(historyCopy[historyCopy.length - 1]);
 // const [openingHistory, setOpeningHistory] = useState([]);
+// sx={{
+//   display: "flex",
+//   "& > *": {
+//     ml: 1,
+//   },
+// }}
