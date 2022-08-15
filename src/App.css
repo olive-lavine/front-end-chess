@@ -7,5 +7,11 @@
 
 body {
   background: #E8E5DE;
-  font-family: serif;
+  /* font-family: "Evangelina"; */
+}
+
+
+@font-face {
+  font-family: "Evangelina";
+  src: local("Evangelina"), url("./fonts/Evangelina.otf");
 }

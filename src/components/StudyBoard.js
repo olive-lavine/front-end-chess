@@ -12,7 +12,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
 
-const StudyBoard = () => {
+const StudyBoard = ({ player }) => {
   const chess = new Chess();
   const [game, setGame] = useState(chess);
   const [orientation, setOrientation] = useState("white");
@@ -208,14 +208,14 @@ const StudyBoard = () => {
       return (
         <section>
           <h2>{openingName}</h2>
-          <button
+          <Button
             onClick={() => {
               setIsShown((current) => !current);
             }}
           >
             {!isShown && <section>view line</section>}
             {isShown && <section>hide line</section>}
-          </button>
+          </Button>
           {isShown && <section>{openingPgn}</section>}
         </section>
       );
@@ -228,7 +228,7 @@ const StudyBoard = () => {
       const currentId = idHistory[idHistory.length - 1];
       return (
         <section>
-          <button
+          <Button
             onClick={() => {
               if (previousId) {
                 getOpenings(previousId);
@@ -237,7 +237,6 @@ const StudyBoard = () => {
                 setSelectedOpeningMoves(openingHistory[previousId].moves);
                 setHasChild(openingHistory[previousId].hasChild);
               } else {
-                // call handle reset instead?
                 getOpenings("");
                 setOpeningPgn("");
                 setOpeningName("");
@@ -254,7 +253,7 @@ const StudyBoard = () => {
             }}
           >
             previous openings ⇐
-          </button>
+          </Button>
         </section>
       );
     }
@@ -284,6 +283,7 @@ const StudyBoard = () => {
         dark: { backgroundColor: "rgb(215, 180, 228)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
       });
+      setSound("./sounds/glass.mp3");
     }
     if (theme === "neon") {
       setColorTheme({

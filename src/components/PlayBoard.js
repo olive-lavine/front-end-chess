@@ -7,12 +7,14 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
+import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
 
-const PlayBoard = () => {
+const PlayBoard = ({ player }) => {
   const chess = new Chess();
   const [game, setGame] = useState(chess);
   const [orientation, setOrientation] = useState("white");
@@ -232,20 +234,20 @@ const PlayBoard = () => {
   return (
     <main>
       <Grid container spacing={2}>
-        <Grid>
-          <section>
-            <section>{opening}</section>
-            <Chessboard
-              position={game.fen()}
-              onDrop={onDrop}
-              orientation={orientation}
-              darkSquareStyle={colorTheme.dark}
-              lightSquareStyle={colorTheme.light}
-              dropSquareStyle={colorTheme.drop}
-            />
-          </section>
-          <h2>{message}</h2>
-          <h3>{bookMessage}</h3>
+        <Grid item>
+          <Typography>{opening}</Typography>
+        </Grid>
+        <Grid item>
+          <Chessboard
+            position={game.fen()}
+            onDrop={onDrop}
+            orientation={orientation}
+            darkSquareStyle={colorTheme.dark}
+            lightSquareStyle={colorTheme.light}
+            dropSquareStyle={colorTheme.drop}
+          />
+          <Typography>{message}</Typography>
+          <Typography>{bookMessage}</Typography>
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
             <InputLabel>colors</InputLabel>
             <Select onChange={handleThemeChange} value="">
@@ -257,6 +259,7 @@ const PlayBoard = () => {
           </FormControl>
         </Grid>
         <Grid
+          item
           sx={{
             display: "flex",
             "& > *": {
@@ -274,7 +277,7 @@ const PlayBoard = () => {
             <Button onClick={handleUndo}>⇐</Button>
             <Button onClick={handleFlip}>flip</Button>
           </ButtonGroup>
-          <Grid>{displayTopMoves()}</Grid>
+          <Grid item>{displayTopMoves()}</Grid>
         </Grid>
       </Grid>
       <section>{game.pgn()}</section>
