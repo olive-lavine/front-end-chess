@@ -1,6 +1,6 @@
 import Chessboard from "chessboardjsx";
 import axios from "axios";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import Button from "@mui/material/Button";
 import InputLabel from "@mui/material/InputLabel";
@@ -12,9 +12,9 @@ import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import { width } from "@mui/system";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
+const baseUrl = "https://back-end-chess.herokuapp.com/players/";
 
 const PlayBoard = ({ player }) => {
   const chess = new Chess();
@@ -23,8 +23,6 @@ const PlayBoard = ({ player }) => {
   const [message, setMessage] = useState("");
   const [opening, setOpening] = useState("");
   const [topMoves, setTopMoves] = useState([]);
-  const [book, setBook] = useState(true);
-  const [bookMessage, setBookMessage] = useState("");
   const [uci, setUci] = useState("");
   const [isShown, setIsShown] = useState(false);
   const [moveCount, setMoveCount] = useState(0);
@@ -49,7 +47,7 @@ const PlayBoard = ({ player }) => {
       });
   };
 
-  const getOpening = (uci) => {
+  const getOpening = useCallback((uci) => {
     getOpeningAsync(uci)
       .then((response) => {
         if (response.opening) {
@@ -61,16 +59,14 @@ const PlayBoard = ({ player }) => {
             movesList.push({ san: move.san, uci: move.uci });
           }
           setTopMoves(movesList);
-          setBook(true);
         } else {
           setTopMoves([]);
-          setBook(false);
         }
       })
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, []);
 
   function onDrop({ sourceSquare, targetSquare }) {
     setMessage("");
@@ -82,18 +78,14 @@ const PlayBoard = ({ player }) => {
       if (sound) {
         moveSound.play();
       }
-      if (book) {
-        setBookMessage("");
-        const uciMove = `${sourceSquare}${targetSquare}`;
-        if (!uci) {
-          setUci(uciMove);
-          getOpening(uciMove);
-        } else {
-          setUci(`${uci},${uciMove}`);
-          getOpening(`${uci},${uciMove}`);
-        }
+
+      const uciMove = `${sourceSquare}${targetSquare}`;
+      if (!uci) {
+        setUci(uciMove);
+        getOpening(uciMove);
       } else {
-        setBookMessage("Out of book, but follow your curiosity...");
+        setUci(`${uci},${uciMove}`);
+        getOpening(`${uci},${uciMove}`);
       }
     }
     if (game.in_check()) {
@@ -104,10 +96,11 @@ const PlayBoard = ({ player }) => {
     }
   }
 
+  useEffect(() => {
+    getOpening("");
+  }, [getOpening]);
+
   function displayTopMoves() {
-    if (!moveCount) {
-      getOpening("");
-    }
     const moves = topMoves.map((move) => (
       <Button
         key={move.san}
@@ -168,6 +161,30 @@ const PlayBoard = ({ player }) => {
     });
   }
 
+  function displayAddOpening() {
+    if (game.pgn()) {
+      return (
+        <Box>
+          <Button onClick={addCustomOpening}>Add to repertoire</Button>
+        </Box>
+      );
+    }
+  }
+
+  function addCustomOpening() {
+    const requestBody = { name: opening, pgn: game.pgn(), player: player };
+    return axios
+      .post(`${baseUrl}custom`, requestBody)
+      .then((response) => {
+        console.log(response);
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error("error posting opening");
+      });
+  }
+
   function handleReset() {
     const gameCopy = { ...game };
     gameCopy.reset();
@@ -177,7 +194,7 @@ const PlayBoard = ({ player }) => {
     setTopMoves([]);
     setMoveCount(0);
     setMessage("");
-    setBookMessage("");
+    getOpening("");
   }
 
   function handleUndo() {
@@ -213,7 +230,7 @@ const PlayBoard = ({ player }) => {
         dark: { backgroundColor: "rgb(148, 107, 107)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
       });
-      setSound("./sounds/wood.mp3");
+      setSound("/assets/sounds/wood.mp3");
     }
     if (theme === "mint") {
       setColorTheme({
@@ -221,7 +238,7 @@ const PlayBoard = ({ player }) => {
         dark: { backgroundColor: "rgb(215, 180, 228)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
       });
-      setSound("./sounds/glass.mp3");
+      setSound("/assets/sounds/glass.mp3");
     }
     if (theme === "neon") {
       setColorTheme({
@@ -229,21 +246,18 @@ const PlayBoard = ({ player }) => {
         dark: { backgroundColor: "rgb(230, 74, 196)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(220, 242, 132)" },
       });
-      setSound("./sounds/space.mp3");
+      setSound("/assets/sounds/space.mp3");
     }
   }
 
   return (
-    <Grid
-      container
-      justifyContent="space-around"
-      spacing={2}
-      sx={{ border: "1px dashed grey" }}
-    >
-      <Grid item xs={12} sx={{ height: "3vh", border: "1px dashed grey" }}>
-        <Typography>{opening}</Typography>
+    <Grid container sx={{ flexWrap: "wrap" }}>
+      <Grid item xs={12}>
+        <Toolbar>
+          <Typography>{opening}</Typography>
+        </Toolbar>
       </Grid>
-      <Grid item xs={6.5} sx={{ border: "1px dashed grey" }}>
+      <Grid item>
         <Chessboard
           position={game.fen()}
           onDrop={onDrop}
@@ -266,9 +280,8 @@ const PlayBoard = ({ player }) => {
           </Select>
         </FormControl>
         <Typography> {message}</Typography>
-        <Typography> {bookMessage}</Typography>
       </Grid>
-      <Grid item xs={5.5} sx={{ border: "1px dashed grey" }}>
+      <Grid item sx={{ ml: 2 }}>
         <ButtonGroup
           variant="outlined"
           orientation="vertical"
@@ -279,12 +292,16 @@ const PlayBoard = ({ player }) => {
           <Button onClick={handleUndo}>⇐</Button>
           <Button onClick={handleFlip}>flip</Button>
         </ButtonGroup>
-        <Grid item sx={{ border: "1px dashed grey" }}>
-          {displayTopMoves()}
-        </Grid>
-
-        <Grid item sx={{ border: "1px dashed grey" }}>
+        {displayTopMoves()}
+        <Grid
+          item
+          sx={{
+            maxWidth: 200,
+            padding: 0.5,
+          }}
+        >
           {game.pgn()}
+          <Grid item>{displayAddOpening()}</Grid>
         </Grid>
       </Grid>
     </Grid>

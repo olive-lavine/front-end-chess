@@ -40,66 +40,78 @@ export default function App() {
   };
 
   return (
-    <Container sx={{ backgroundColor: "rgb(232, 229, 222)" }}>
-      {/* {!player && <LogIn setPlayer={setPlayer} />} */}
-      {/* {player && ( */}
-
-      <AppBar
-        sx={{
-          boxShadow: "none",
-          backgroundColor: "rgb(232, 229, 222)",
-          color: "#173A5E",
-        }}
-      >
-        <Toolbar>
-          <Typography
-            fontFamily="serif"
-            variant="h4"
-            component="div"
-            sx={{ flexGrow: 1 }}
-          >
-            <Button
-              style={{
-                fontSize: "2em",
-                fontFamily: "Evangelina",
-                textTransform: "none",
-                color: "rgb(52, 108, 140)",
-              }}
-              onClick={() => {
-                setSelectedPage("Home");
-              }}
-            >
-              Opening Knight
-            </Button>
-          </Typography>
-          <Button
-            onClick={() => {
-              setSelectedPage("PlayBoard");
+    <Container
+      sx={{
+        backgroundColor: "rgb(232, 229, 222)",
+        minWidth: "100%",
+        height: "100vh",
+      }}
+    >
+      {!player && <LogIn setPlayer={setPlayer} />}
+      {player && (
+        <>
+          <AppBar
+            sx={{
+              boxShadow: "none",
+              backgroundColor: "rgb(232, 229, 222)",
+              // color: "#173A5E",
             }}
-            style={{ color: "rgb(52, 108, 140)" }}
           >
-            play
-          </Button>
-          <Button
-            onClick={() => {
-              setSelectedPage("StudyBoard");
-            }}
-            style={{ color: "rgb(52, 108, 140)" }}
-          >
-            practice
-          </Button>
-          <Button
-            onClick={() => {
-              setSelectedPage("About");
-            }}
-            style={{ color: "rgb(52, 108, 140)" }}
-          >
-            about
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Box sx={{ mt: "150px" }}>{getSelectedPage()}</Box>
+            <Toolbar sx={{ backgroundColor: "rgb(232, 229, 222)" }}>
+              <Typography
+                fontFamily="serif"
+                variant="h5"
+                component="div"
+                flexGrow={1}
+                display={{ xs: "none", sm: "block" }}
+              >
+                <Button
+                  style={{
+                    fontSize: "2em",
+                    fontFamily: "Evangelina",
+                    textTransform: "none",
+                    color: "rgb(52, 108, 140)",
+                  }}
+                  onClick={() => {
+                    setSelectedPage("Home");
+                  }}
+                >
+                  Opening Knight
+                </Button>
+              </Typography>
+              <Button
+                onClick={() => {
+                  setSelectedPage("PlayBoard");
+                }}
+                style={{ color: "rgb(52, 108, 140)" }}
+              >
+                play
+              </Button>
+              <Button
+                onClick={() => {
+                  setSelectedPage("StudyBoard");
+                }}
+                style={{ color: "rgb(52, 108, 140)" }}
+              >
+                practice
+              </Button>
+              <Button
+                onClick={() => {
+                  setSelectedPage("About");
+                }}
+                style={{ color: "rgb(52, 108, 140)" }}
+              >
+                about
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <Box p={5} pt={15}>
+            {getSelectedPage()}
+          </Box>
+        </>
+      )}
     </Container>
   );
 }
 // display:"flex" justifyContent="center" alignItems="center"
+// sx={{ mt: "15%", border: 2 }}

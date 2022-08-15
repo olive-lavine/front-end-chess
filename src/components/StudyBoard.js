@@ -7,10 +7,13 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
+import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
-const kBaseUrl = "http://localhost:8080/openings/parent";
+const kBaseUrl = "https://back-end-chess.herokuapp.com/openings/parent";
+const baseUrl = "https://back-end-chess.herokuapp.com/players";
 
 const StudyBoard = ({ player }) => {
   const chess = new Chess();
@@ -19,6 +22,7 @@ const StudyBoard = ({ player }) => {
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
   const [openings, setOpenings] = useState([]);
+  const [customOpenings, setCustomOpenings] = useState([]);
   const [openingPgn, setOpeningPgn] = useState("");
   const [openingName, setOpeningName] = useState("");
   const [isShown, setIsShown] = useState(false);
@@ -46,7 +50,7 @@ const StudyBoard = ({ player }) => {
       });
   };
 
-  const getOpenings = (parentId) => {
+  const getOpenings = useCallback((parentId) => {
     getOpeningsAsync(parentId)
       .then((openings) => {
         setOpenings(openings);
@@ -54,11 +58,48 @@ const StudyBoard = ({ player }) => {
       .catch((err) => {
         console.log(err);
       });
+  }, []);
+
+  const getCustomOpeningsAsync = (playerId) => {
+    return axios
+      .get(`${baseUrl}/${playerId}/custom`)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error("error getting custom openings");
+      });
   };
+
+  const getCustomOpenings = useCallback((playerId) => {
+    getCustomOpeningsAsync(playerId)
+      .then((response) => {
+        console.log(response);
+        const openingList = [];
+        for (const opening of response) {
+          openingList.push({
+            id: opening.id,
+            name: opening.name,
+            pgn: opening.pgn,
+            parentId: null,
+            hasChild: false,
+          });
+          setCustomOpenings(openingList);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   useEffect(() => {
     getOpenings("");
-  }, []);
+  }, [getOpenings]);
+
+  useEffect(() => {
+    getCustomOpenings(player.player_id);
+  }, [getCustomOpenings, player.player_id]);
 
   const cpu_moves = useCallback(() => {
     const gameCopy = { ...game };
@@ -74,9 +115,11 @@ const StudyBoard = ({ player }) => {
       }
     }, 200);
     setTimeout(() => {
-      moveSound.play();
+      if (sound) {
+        moveSound.play();
+      }
     }, 800);
-  }, [game, moveSound, moveCount, hasChild, selectedOpeningMoves]);
+  }, [game, moveSound, moveCount, hasChild, selectedOpeningMoves, sound]);
 
   // Handles CPU making the correct opening moves
   useEffect(() => {
@@ -113,7 +156,9 @@ const StudyBoard = ({ player }) => {
       }
       if (move.san === selectedOpeningMoves[moveCount]) {
         setGame(gameCopy);
-        moveSound.play();
+        if (sound) {
+          moveSound.play();
+        }
         const newMoveCount = moveCount + 1;
         setMoveCount(newMoveCount);
         if (newMoveCount === selectedOpeningMoves.length && hasChild) {
@@ -131,7 +176,9 @@ const StudyBoard = ({ player }) => {
       const gameCopy = { ...game };
       gameCopy.move({ from: sourceSquare, to: targetSquare });
       setMessage("Out of book, but follow your curiosity...");
-      moveSound.play();
+      if (sound) {
+        moveSound.play();
+      }
       setGame(gameCopy);
       setMoveCount(moveCount + 1);
     }
@@ -203,11 +250,38 @@ const StudyBoard = ({ player }) => {
     getOpenings(openingId);
   };
 
+  const handleCustomOpeningChange = (event) => {
+    setMessage("");
+    const openingId = parseInt(event.target.value);
+
+    // find selected opening
+    let opening = "";
+    for (let i = 0; i < customOpenings.length; i++) {
+      if (customOpenings[i].id === openingId) {
+        opening = customOpenings[i];
+        setOpeningPgn(opening.pgn);
+        setHasChild(opening.hasChild);
+        setOpeningName(opening.name);
+      }
+    }
+    // transform pgn to list of moves
+    let openingMoves = [];
+    opening = opening.pgn.split(" ");
+    for (let i = 0; i < opening.length; i++) {
+      if (i % 3 !== 0) {
+        openingMoves.push(opening[i]);
+      }
+    }
+    setSelectedOpeningMoves(openingMoves);
+  };
+
   function handleView() {
     if (selectedOpeningMoves.length > 0) {
       return (
         <section>
-          <h2>{openingName}</h2>
+          <Toolbar>
+            <Typography>{openingName}</Typography>
+          </Toolbar>
           <Button
             onClick={() => {
               setIsShown((current) => !current);
@@ -296,9 +370,11 @@ const StudyBoard = ({ player }) => {
   }
 
   return (
-    <main>
-      <section>{handleView()}</section>
-      <section>
+    <Grid container sx={{ flexWrap: "wrap" }}>
+      <Grid item xs={12}>
+        {handleView()}
+      </Grid>
+      <Grid item>
         <Chessboard
           position={game.fen()}
           onDrop={onDrop}
@@ -307,8 +383,40 @@ const StudyBoard = ({ player }) => {
           lightSquareStyle={colorTheme.light}
           dropSquareStyle={colorTheme.drop}
         />
-      </section>
-      <h2>{message}</h2>
+        <Toolbar>
+          <Typography>{message}</Typography>
+        </Toolbar>
+        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>colors</InputLabel>
+          <Select onChange={handleThemeChange} value="">
+            <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="rose">Rose</MenuItem>
+            <MenuItem value="mint">Mint</MenuItem>
+            <MenuItem value="neon">Neon</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>openings</InputLabel>
+          <Select onChange={handleOpeningChange} value="">
+            {openings.map((opening) => (
+              <MenuItem key={opening.id} value={opening.id}>
+                {opening.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>repertoire</InputLabel>
+          <Select onChange={handleCustomOpeningChange} value="">
+            {customOpenings.map((opening) => (
+              <MenuItem key={opening.id} value={opening.id}>
+                {opening.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
       <ButtonGroup
         variant="outlined"
         orientation="vertical"
@@ -319,28 +427,9 @@ const StudyBoard = ({ player }) => {
         <Button onClick={handleUndo}>⇐</Button>
         <Button onClick={handleFlip}>flip</Button>
       </ButtonGroup>
-      <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
-        <InputLabel>colors</InputLabel>
-        <Select onChange={handleThemeChange} value="">
-          <MenuItem value="blue">Blue</MenuItem>
-          <MenuItem value="rose">Rose</MenuItem>
-          <MenuItem value="mint">Mint</MenuItem>
-          <MenuItem value="neon">Neon</MenuItem>
-        </Select>
-      </FormControl>
-      <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
-        <InputLabel>openings</InputLabel>
-        <Select onChange={handleOpeningChange} value="">
-          {openings.map((opening) => (
-            <MenuItem key={opening.id} value={opening.id}>
-              {opening.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
       <section>{toggleOpenings()}</section>
       <section>{game.pgn()}</section>
-    </main>
+    </Grid>
   );
 };
 
