@@ -9,7 +9,6 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
-import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
@@ -104,6 +103,7 @@ const PlayBoard = ({ player }) => {
     const moves = topMoves.map((move) => (
       <Button
         key={move.san}
+        size="large"
         onClick={() => {
           handleMoveClick(move.uci);
         }}
@@ -114,6 +114,7 @@ const PlayBoard = ({ player }) => {
     return (
       <section>
         <Button
+          size="large"
           onClick={() => {
             setIsShown((current) => !current);
           }}
@@ -121,6 +122,7 @@ const PlayBoard = ({ player }) => {
           {!isShown && <section>view top moves</section>}
           {isShown && <section>hide top moves</section>}
         </Button>
+        <p></p>
         {isShown && (
           <ButtonGroup size="small" aria-label="small button group">
             {moves}
@@ -164,9 +166,11 @@ const PlayBoard = ({ player }) => {
   function displayAddOpening() {
     if (game.pgn()) {
       return (
-        <Box>
-          <Button onClick={addCustomOpening}>Add to repertoire</Button>
-        </Box>
+        <p>
+          <Button size="large" onClick={addCustomOpening}>
+            Add to repertoire
+          </Button>
+        </p>
       );
     }
   }
@@ -251,10 +255,10 @@ const PlayBoard = ({ player }) => {
   }
 
   return (
-    <Grid container sx={{ flexWrap: "wrap" }}>
-      <Grid item xs={12}>
-        <Toolbar>
-          <Typography>{opening}</Typography>
+    <Grid container>
+      <Grid item xs={6}>
+        <Toolbar sx={{ justifyContent: "center" }}>
+          <Typography variant="h6">{opening}</Typography>
         </Toolbar>
       </Grid>
       <Grid item>
@@ -279,20 +283,22 @@ const PlayBoard = ({ player }) => {
             <MenuItem value="neon">Neon</MenuItem>
           </Select>
         </FormControl>
-        <Typography> {message}</Typography>
+        <span class="message">{message}</span>
       </Grid>
-      <Grid item sx={{ ml: 2 }}>
+      <Grid item sx={{ ml: 2, width: 300 }}>
         <ButtonGroup
           variant="outlined"
           orientation="vertical"
-          size="small"
+          size="large"
           aria-label="small button group"
         >
           <Button onClick={handleReset}>start over</Button>
           <Button onClick={handleUndo}>⇐</Button>
           <Button onClick={handleFlip}>flip</Button>
         </ButtonGroup>
+        <p></p>
         {displayTopMoves()}
+        <p></p>
         <Grid
           item
           sx={{
@@ -301,6 +307,7 @@ const PlayBoard = ({ player }) => {
           }}
         >
           {game.pgn()}
+          <p></p>
           <Grid item>{displayAddOpening()}</Grid>
         </Grid>
       </Grid>
@@ -309,27 +316,3 @@ const PlayBoard = ({ player }) => {
 };
 
 export default PlayBoard;
-
-// stateHistory = [
-//   {
-//     opening:
-//     topMoves:
-//     uci:
-//   },
-
-// ]
-
-// const updatedHistory = [...openingHistory, response.opening.name];
-// setOpeningHistory(updatedHistory);
-
-// const historyCopy = [...openingHistory];
-// historyCopy.pop();
-// setOpeningHistory(historyCopy);
-// setOpening(historyCopy[historyCopy.length - 1]);
-// const [openingHistory, setOpeningHistory] = useState([]);
-// sx={{
-//   display: "flex",
-//   "& > *": {
-//     ml: 1,
-//   },
-// }}

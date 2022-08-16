@@ -30,6 +30,7 @@ const StudyBoard = ({ player }) => {
   const [selectedOpeningMoves, setSelectedOpeningMoves] = useState([]);
   const [idHistory, setIdHistory] = useState([]);
   const [openingHistory, setOpeningHistory] = useState({});
+  const [customSelected, setCustomSelected] = useState(false);
   const [colorTheme, setColorTheme] = useState({
     light: { backgroundColor: "rgb(217, 227, 242)" },
     dark: { backgroundColor: "rgb(141, 171, 215)" },
@@ -75,7 +76,6 @@ const StudyBoard = ({ player }) => {
   const getCustomOpenings = useCallback((playerId) => {
     getCustomOpeningsAsync(playerId)
       .then((response) => {
-        console.log(response);
         const openingList = [];
         for (const opening of response) {
           openingList.push({
@@ -196,6 +196,7 @@ const StudyBoard = ({ player }) => {
     setOpeningHistory({});
     setIdHistory([]);
     getOpenings("");
+    setCustomSelected(false);
   }
   function handleUndo() {
     setMessage("");
@@ -216,6 +217,7 @@ const StudyBoard = ({ player }) => {
 
   const handleOpeningChange = (event) => {
     setMessage("");
+    setCustomSelected(false);
     const openingId = parseInt(event.target.value);
     const updatedIdHistory = [...idHistory, openingId];
     setIdHistory(updatedIdHistory);
@@ -252,6 +254,7 @@ const StudyBoard = ({ player }) => {
 
   const handleCustomOpeningChange = (event) => {
     setMessage("");
+    setCustomSelected(true);
     const openingId = parseInt(event.target.value);
 
     // find selected opening
@@ -279,10 +282,9 @@ const StudyBoard = ({ player }) => {
     if (selectedOpeningMoves.length > 0) {
       return (
         <section>
-          <Toolbar>
-            <Typography>{openingName}</Typography>
-          </Toolbar>
           <Button
+            sx={{ ml: 1 }}
+            size="large"
             onClick={() => {
               setIsShown((current) => !current);
             }}
@@ -290,19 +292,33 @@ const StudyBoard = ({ player }) => {
             {!isShown && <section>view line</section>}
             {isShown && <section>hide line</section>}
           </Button>
-          {isShown && <section>{openingPgn}</section>}
+          {isShown && (
+            <Grid
+              item
+              sx={{
+                maxWidth: 250,
+                padding: 0.5,
+                ml: 2,
+                fontSize: "large",
+              }}
+            >
+              {openingPgn}
+            </Grid>
+          )}
         </section>
       );
     }
   }
 
   function toggleOpenings() {
-    if (selectedOpeningMoves.length > 0) {
+    if (selectedOpeningMoves.length > 0 && !customSelected) {
       const previousId = idHistory[idHistory.length - 2];
       const currentId = idHistory[idHistory.length - 1];
       return (
         <section>
           <Button
+            size="large"
+            sx={{ ml: 1, mt: 2 }}
             onClick={() => {
               if (previousId) {
                 getOpenings(previousId);
@@ -326,7 +342,7 @@ const StudyBoard = ({ player }) => {
               handleUndo();
             }}
           >
-            previous openings ⇐
+            previous openings
           </Button>
         </section>
       );
@@ -370,9 +386,11 @@ const StudyBoard = ({ player }) => {
   }
 
   return (
-    <Grid container sx={{ flexWrap: "wrap" }}>
-      <Grid item xs={12}>
-        {handleView()}
+    <Grid container>
+      <Grid item xs={6}>
+        <Toolbar sx={{ justifyContent: "center" }}>
+          <Typography variant="h6">{openingName}</Typography>
+        </Toolbar>
       </Grid>
       <Grid item>
         <Chessboard
@@ -383,10 +401,11 @@ const StudyBoard = ({ player }) => {
           lightSquareStyle={colorTheme.light}
           dropSquareStyle={colorTheme.drop}
         />
-        <Toolbar>
-          <Typography>{message}</Typography>
-        </Toolbar>
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+        <FormControl
+          sx={{ mt: 1.5, minWidth: 120 }}
+          size="small"
+          margin="dense"
+        >
           <InputLabel>colors</InputLabel>
           <Select onChange={handleThemeChange} value="">
             <MenuItem value="blue">Blue</MenuItem>
@@ -395,8 +414,11 @@ const StudyBoard = ({ player }) => {
             <MenuItem value="neon">Neon</MenuItem>
           </Select>
         </FormControl>
-
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+        <FormControl
+          sx={{ mt: 1.5, ml: 2, minWidth: 120 }}
+          size="small"
+          margin="dense"
+        >
           <InputLabel>openings</InputLabel>
           <Select onChange={handleOpeningChange} value="">
             {openings.map((opening) => (
@@ -406,7 +428,11 @@ const StudyBoard = ({ player }) => {
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small" margin="dense">
+        <FormControl
+          sx={{ mt: 1.5, ml: 2, minWidth: 120 }}
+          size="small"
+          margin="dense"
+        >
           <InputLabel>repertoire</InputLabel>
           <Select onChange={handleCustomOpeningChange} value="">
             {customOpenings.map((opening) => (
@@ -416,19 +442,40 @@ const StudyBoard = ({ player }) => {
             ))}
           </Select>
         </FormControl>
+        <Toolbar sx={{ justifyContent: "center" }}>
+          <Typography variant="h5">{message}</Typography>
+        </Toolbar>
       </Grid>
-      <ButtonGroup
-        variant="outlined"
-        orientation="vertical"
-        size="small"
-        aria-label="small button group"
-      >
-        <Button onClick={handleReset}>start over</Button>
-        <Button onClick={handleUndo}>⇐</Button>
-        <Button onClick={handleFlip}>flip</Button>
-      </ButtonGroup>
-      <section>{toggleOpenings()}</section>
-      <section>{game.pgn()}</section>
+      <Grid item>
+        <ButtonGroup
+          variant="outlined"
+          orientation="vertical"
+          size="large"
+          aria-label="small button group"
+          sx={{ ml: 2 }}
+        >
+          <Button onClick={handleReset}>start over</Button>
+          <Button onClick={handleUndo}>⇐</Button>
+          <Button onClick={handleFlip}>flip</Button>
+        </ButtonGroup>
+
+        <section>{toggleOpenings()}</section>
+        <p></p>
+        {handleView()}
+        <p></p>
+        {!isShown && (
+          <Grid
+            item
+            sx={{
+              maxWidth: 200,
+              padding: 0.5,
+              ml: 2,
+            }}
+          >
+            {game.pgn()}
+          </Grid>
+        )}
+      </Grid>
     </Grid>
   );
 };

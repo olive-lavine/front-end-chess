@@ -5,6 +5,8 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
+import AppBar from "@mui/material/AppBar";
+import Typography from "@mui/material/Typography";
 import CardMedia from "@mui/material/CardMedia";
 import axios from "axios";
 import { useState } from "react";
@@ -23,7 +25,7 @@ export default function LogIn({ setPlayer }) {
       .get(`https://back-end-chess.herokuapp.com/players/?name=${name}`)
       .then((player) => {
         if (!player.data) {
-          setStatus("welcome new user, please sign in");
+          setStatus(`welcome ${name}, please sign in`);
           addPlayer(name);
         } else {
           setPlayer(player.data);
@@ -48,7 +50,26 @@ export default function LogIn({ setPlayer }) {
 
   return (
     <Grid item container justifyContent="center">
-      <Card>
+      <AppBar
+        sx={{
+          boxShadow: "none",
+          backgroundColor: "rgb(232, 229, 222)",
+        }}
+      >
+        <Typography variant="h5">
+          <Button
+            style={{
+              fontSize: "3em",
+              fontFamily: "Evangelina",
+              textTransform: "none",
+              color: "rgb(52, 108, 140)",
+            }}
+          >
+            Opening Knight
+          </Button>
+        </Typography>
+      </AppBar>
+      <Card sx={{ mt: 17 }}>
         <CardMedia
           component="img"
           image="./assets/images/chess.jpg"
@@ -68,13 +89,3 @@ export default function LogIn({ setPlayer }) {
     </Grid>
   );
 }
-// <Card component="form" id="login" noValidate onSubmit={handleSubmit}>
-//   <CardContent>
-//     <TextField id="username" label="User Name" onChange={handleInput} />
-//     <CardActions>
-//       <Button size="small" type="submit">
-//         Submit
-//       </Button>
-//     </CardActions>
-//   </CardContent>
-// </Card>

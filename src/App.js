@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PlayBoard from "./components/PlayBoard";
 import StudyBoard from "./components/StudyBoard";
 import LogIn from "./components/LogIn";
@@ -11,8 +11,6 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
-import Grid from "@mui/material/Grid";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import "./App.css";
 
 export default function App() {
@@ -67,7 +65,7 @@ export default function App() {
               >
                 <Button
                   style={{
-                    fontSize: "2em",
+                    fontSize: "3em",
                     fontFamily: "Evangelina",
                     textTransform: "none",
                     color: "rgb(52, 108, 140)",
@@ -84,6 +82,7 @@ export default function App() {
                   setSelectedPage("PlayBoard");
                 }}
                 style={{ color: "rgb(52, 108, 140)" }}
+                size="large"
               >
                 play
               </Button>
@@ -92,6 +91,7 @@ export default function App() {
                   setSelectedPage("StudyBoard");
                 }}
                 style={{ color: "rgb(52, 108, 140)" }}
+                size="large"
               >
                 practice
               </Button>
@@ -100,12 +100,13 @@ export default function App() {
                   setSelectedPage("About");
                 }}
                 style={{ color: "rgb(52, 108, 140)" }}
+                size="large"
               >
                 about
               </Button>
             </Toolbar>
           </AppBar>
-          <Box p={5} pt={15}>
+          <Box p={5} pt={17}>
             {getSelectedPage()}
           </Box>
         </>
@@ -113,5 +114,3 @@ export default function App() {
     </Container>
   );
 }
-// display:"flex" justifyContent="center" alignItems="center"
-// sx={{ mt: "15%", border: 2 }}
