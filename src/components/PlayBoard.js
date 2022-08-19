@@ -103,7 +103,7 @@ const PlayBoard = ({ player }) => {
     const moves = topMoves.map((move) => (
       <Button
         key={move.san}
-        size="large"
+        size="medium"
         onClick={() => {
           handleMoveClick(move.uci);
         }}
