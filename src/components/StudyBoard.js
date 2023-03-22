@@ -12,8 +12,8 @@ import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
-const kBaseUrl = "https://back-end-chess.herokuapp.com/openings/parent";
-const baseUrl = "https://back-end-chess.herokuapp.com/players";
+const kBaseUrl = "http://localhost:8080/openings/parent";
+const baseUrl = "http://localhost:8080/players";
 
 const StudyBoard = ({ player }) => {
   const chess = new Chess();

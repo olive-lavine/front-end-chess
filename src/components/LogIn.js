@@ -22,7 +22,7 @@ export default function LogIn({ setPlayer }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     return axios
-      .get(`https://back-end-chess.herokuapp.com/players/?name=${name}`)
+      .get(`http://localhost:8080/players/?name=${name}`)
       .then((player) => {
         if (!player.data) {
           setStatus(`welcome ${name}, please sign in`);
@@ -39,7 +39,7 @@ export default function LogIn({ setPlayer }) {
   const addPlayer = (name) => {
     const requestBody = { name: name };
     return axios
-      .post(`https://back-end-chess.herokuapp.com/players`, requestBody)
+      .post(`http://localhost:8080/players`, requestBody)
       .then((response) => {
         console.log(response.data);
       })

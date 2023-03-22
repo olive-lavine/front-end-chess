@@ -1,4 +1,4 @@
-import Chessboard from "chessboardjsx";
+import { Chessboard } from "react-chessboard";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { Chess } from "chess.js";
@@ -13,7 +13,7 @@ import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
-const baseUrl = "https://back-end-chess.herokuapp.com/players/";
+const baseUrl = "http://localhost:8080/players/";
 
 const PlayBoard = ({ player }) => {
   const chess = new Chess();
@@ -67,11 +67,16 @@ const PlayBoard = ({ player }) => {
       });
   }, []);
 
-  function onDrop({ sourceSquare, targetSquare }) {
+  function onDrop(sourceSquare, targetSquare ) {
     setMessage("");
     const gameCopy = { ...game };
-    const move = gameCopy.move({ from: sourceSquare, to: targetSquare });
+    const move = gameCopy.move({ 
+      from: sourceSquare, 
+      to: targetSquare,
+      promotion: 'q',
+    });
     setGame(gameCopy);
+
     if (move) {
       setMoveCount(moveCount + 1);
       if (sound) {
@@ -264,11 +269,11 @@ const PlayBoard = ({ player }) => {
       <Grid item>
         <Chessboard
           position={game.fen()}
-          onDrop={onDrop}
-          orientation={orientation}
-          darkSquareStyle={colorTheme.dark}
-          lightSquareStyle={colorTheme.light}
-          dropSquareStyle={colorTheme.drop}
+          onPieceDrop={onDrop}
+          boardOrientation={orientation}
+          customDarkSquareStyle={colorTheme.dark}
+          customLightSquareStyle={colorTheme.light}
+          customDropSquareStyle={colorTheme.drop}
         />
         <FormControl
           sx={{ mt: 1.5, minWidth: 120 }}
