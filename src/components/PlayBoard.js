@@ -32,6 +32,10 @@ const PlayBoard = ({ player }) => {
   });
   const [sound, setSound] = useState("");
 
+  const [selectedSquare, setSelectedSquare] = useState('');
+  const [optionSquares, setOptionSquares] = useState({});
+
+
   const moveSound = new Audio(sound);
 
   const getOpeningAsync = (uci) => {
@@ -67,17 +71,8 @@ const PlayBoard = ({ player }) => {
       });
   }, []);
 
-  function onDrop(sourceSquare, targetSquare ) {
-    setMessage("");
-    const gameCopy = { ...game };
-    const move = gameCopy.move({ 
-      from: sourceSquare, 
-      to: targetSquare,
-      promotion: 'q',
-    });
-    setGame(gameCopy);
-
-    if (move) {
+  // keep track of move logic for openings
+  function moveLogic(sourceSquare, targetSquare) {
       setMoveCount(moveCount + 1);
       if (sound) {
         moveSound.play();
@@ -91,13 +86,105 @@ const PlayBoard = ({ player }) => {
         setUci(`${uci},${uciMove}`);
         getOpening(`${uci},${uciMove}`);
       }
-    }
+
+  }
+
+  // when user drags/drops pieces
+  function onDrop(sourceSquare, targetSquare) {
+    setMessage("");
+    const gameCopy = { ...game };
+    const move = gameCopy.move({ 
+      from: sourceSquare, 
+      to: targetSquare,
+      promotion: 'q',
+    });
+    setGame(gameCopy);
+
+    if (move) { moveLogic(sourceSquare, targetSquare) }
+    
     if (game.in_check()) {
       setMessage("check");
     }
     if (game.in_checkmate()) {
       setMessage("checkmate");
     }
+
+    setSelectedSquare('');
+    setOptionSquares({});
+  }
+
+  // when user clicks on a piece 
+  function onSquareClick(square) {
+    if (game.get(square) && !selectedSquare) {
+      setSelectedSquare(square);
+      getMoveOptions(square);
+      return;
+    }
+    // attempt to make move
+    const gameCopy = { ...game };
+    const move = gameCopy.move({
+      from: selectedSquare,
+      to: square,
+      promotion: 'q' // always promote to a queen for example simplicity
+    });
+
+    // if illegal move, reset initial selected square
+    if (game.get(square) && !move) {
+      setSelectedSquare(square);
+      getMoveOptions(square);
+      return;
+    }
+
+    // make move
+    setGame(gameCopy);
+    moveLogic(selectedSquare, square) 
+    setMessage("");
+
+    if (game.in_check()) {
+      setMessage("check");
+    }
+    if (game.in_checkmate()) {
+      setMessage("checkmate");
+    }
+
+    setSelectedSquare('');
+    setOptionSquares({});
+  }
+
+  function onMouseOverSquare(square) {
+    if(!selectedSquare) getMoveOptions(square);
+  }
+
+  function onMouseOutSquare() {
+      if (Object.keys(optionSquares).length !== 0 && !selectedSquare) setOptionSquares({});
+    
+  }
+
+  // highlight move options for selected/hovered piece 
+  function getMoveOptions(square) {
+    // get valid moves
+    const moves = game.moves({
+      square,
+      verbose: true
+    });
+
+    // no moves found
+    if (moves.length === 0) {
+      setOptionSquares({});
+      return;
+    }
+
+    // highlight move options
+    const options = {};
+    moves.forEach((move) => {
+      options[move.to] = {
+        background: game.get(move.to) && game.get(move.to).color !== game.get(square).color
+          ? `radial-gradient(circle at center, transparent 55%, rgba(0,0,0,.1) 55% )`// opponent piece
+          : 'radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)', // normal piece/square
+        borderRadius: '50%',
+      };
+    });
+    setOptionSquares(options);
   }
 
   useEffect(() => {
@@ -137,35 +224,22 @@ const PlayBoard = ({ player }) => {
     );
   }
 
+// make move chosen from top moves list
   function handleMoveClick(chosenMove) {
+    // handle castles
     if (chosenMove === "e1h1") {
-      onDrop({
-        sourceSquare: "e1",
-        targetSquare: "g1",
-      });
+      onDrop("e1","g1");
     }
     if (chosenMove === "e8h8") {
-      onDrop({
-        sourceSquare: "e8",
-        targetSquare: "g8",
-      });
+      onDrop("e8","g8");
     }
     if (chosenMove === "e1a1") {
-      onDrop({
-        sourceSquare: "e1",
-        targetSquare: "c1",
-      });
+      onDrop("e1","c1");
     }
     if (chosenMove === "e8a8") {
-      onDrop({
-        sourceSquare: "e8",
-        targetSquare: "c8",
-      });
+      onDrop("e8","c8");
     }
-    onDrop({
-      sourceSquare: chosenMove.slice(0, 2),
-      targetSquare: chosenMove.slice(2),
-    });
+    onDrop(chosenMove.slice(0, 2), chosenMove.slice(2));
   }
 
   function displayAddOpening() {
@@ -204,6 +278,8 @@ const PlayBoard = ({ player }) => {
     setMoveCount(0);
     setMessage("");
     getOpening("");
+    setSelectedSquare('');
+    setOptionSquares({});
   }
 
   function handleUndo() {
@@ -259,38 +335,29 @@ const PlayBoard = ({ player }) => {
     }
   }
 
+
   return (
-    <Grid container>
-      <Grid item xs={6}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={6}>
         <Toolbar sx={{ justifyContent: "center" }}>
           <Typography variant="h6">{opening}</Typography>
         </Toolbar>
       </Grid>
-      <Grid item>
+      <Grid item xs={10} sm={8} md={6} sx={{ justifyContent: 'center' }}>
         <Chessboard
           position={game.fen()}
           onPieceDrop={onDrop}
+          onMouseOutSquare={onMouseOutSquare}
+          onMouseOverSquare={onMouseOverSquare}
+          onSquareClick={onSquareClick}
           boardOrientation={orientation}
           customDarkSquareStyle={colorTheme.dark}
           customLightSquareStyle={colorTheme.light}
           customDropSquareStyle={colorTheme.drop}
+          customSquareStyles={optionSquares}
         />
-        <FormControl
-          sx={{ mt: 1.5, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>colors</InputLabel>
-          <Select onChange={handleThemeChange} value="">
-            <MenuItem value="blue">Blue</MenuItem>
-            <MenuItem value="rose">Rose</MenuItem>
-            <MenuItem value="mint">Mint</MenuItem>
-            <MenuItem value="neon">Neon</MenuItem>
-          </Select>
-        </FormControl>
-        <span class="message">{message}</span>
       </Grid>
-      <Grid item sx={{ ml: 2, width: 300 }}>
+      <Grid item xs={10} sm={4} md={3} >
         <ButtonGroup
           variant="outlined"
           orientation="vertical"
@@ -316,8 +383,91 @@ const PlayBoard = ({ player }) => {
           <Grid item>{displayAddOpening()}</Grid>
         </Grid>
       </Grid>
+      <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+        <FormControl
+          sx={{ mt: 1.5, minWidth: 120 }}
+          size="small"
+          margin="dense"
+        >
+          <InputLabel>colors</InputLabel>
+          <Select onChange={handleThemeChange} value="">
+            <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="rose">Rose</MenuItem>
+            <MenuItem value="mint">Mint</MenuItem>
+            <MenuItem value="neon">Neon</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+        <span class="message">{message}</span>
+      </Grid>
     </Grid>
   );
 };
 
 export default PlayBoard;
+
+// return (
+//   <Grid container>
+//     <Grid item xs={6}>
+//       <Toolbar sx={{ justifyContent: "center" }}>
+//         <Typography variant="h6">{opening}</Typography>
+//       </Toolbar>
+//     </Grid>
+//     <Grid item>
+//       <Chessboard
+//         position={game.fen()}
+//         onPieceDrop={onDrop}
+//         onMouseOutSquare={onMouseOutSquare}
+//         onMouseOverSquare={onMouseOverSquare}
+//         onSquareClick={onSquareClick}
+//         boardOrientation={orientation}
+//         customDarkSquareStyle={colorTheme.dark}
+//         customLightSquareStyle={colorTheme.light}
+//         customDropSquareStyle={colorTheme.drop}
+//         customSquareStyles={optionSquares}
+//       />
+//       <FormControl
+//         sx={{ mt: 1.5, minWidth: 120 }}
+//         size="small"
+//         margin="dense"
+//       >
+//         <InputLabel>colors</InputLabel>
+//         <Select onChange={handleThemeChange} value="">
+//           <MenuItem value="blue">Blue</MenuItem>
+//           <MenuItem value="rose">Rose</MenuItem>
+//           <MenuItem value="mint">Mint</MenuItem>
+//           <MenuItem value="neon">Neon</MenuItem>
+//         </Select>
+//       </FormControl>
+//       <span class="message">{message}</span>
+//     </Grid>
+//     <Grid item sx={{ ml: 2, width: 300 }}>
+//       <ButtonGroup
+//         variant="outlined"
+//         orientation="vertical"
+//         size="large"
+//         aria-label="small button group"
+//       >
+//         <Button onClick={handleReset}>start over</Button>
+//         <Button onClick={handleUndo}>⇐</Button>
+//         <Button onClick={handleFlip}>flip</Button>
+//       </ButtonGroup>
+//       <p></p>
+//       {displayTopMoves()}
+//       <p></p>
+//       <Grid
+//         item
+//         sx={{
+//           maxWidth: 200,
+//           padding: 0.5,
+//         }}
+//       >
+//         {game.pgn()}
+//         <p></p>
+//         <Grid item>{displayAddOpening()}</Grid>
+//       </Grid>
+//     </Grid>
+//   </Grid>
+// );
+// };
