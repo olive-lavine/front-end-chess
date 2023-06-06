@@ -1,4 +1,5 @@
-import Chessboard from "chessboardjsx";
+// import Chessboard from "chessboardjsx";
+import { Chessboard } from "react-chessboard";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chess } from "chess.js";
 import axios from "axios";
@@ -38,6 +39,7 @@ const StudyBoard = ({ player }) => {
   });
   const [sound, setSound] = useState("");
   const moveSound = useMemo(() => new Audio(sound), [sound]);
+  const [selectedSquare, setSelectedSquare] = useState('');
 
   const getOpeningsAsync = (parentId) => {
     return axios
@@ -138,7 +140,7 @@ const StudyBoard = ({ player }) => {
     }
   }, [moveCount, game, orientation, selectedOpeningMoves, cpu_moves]);
 
-  function onDrop({ sourceSquare, targetSquare }) {
+  function onDrop(sourceSquare, targetSquare) {
     if (selectedOpeningMoves.length === 0) {
       setMessage("select an opening!");
       return;
@@ -182,6 +184,60 @@ const StudyBoard = ({ player }) => {
       setGame(gameCopy);
       setMoveCount(moveCount + 1);
     }
+  }
+
+  // when user clicks on a piece 
+  function onSquareClick(square) {
+    if (game.get(square) && !selectedSquare) {
+      setSelectedSquare(square);
+      return;
+    }
+    if (selectedOpeningMoves.length === 0) {
+      setMessage("select an opening!");
+      return;
+    }
+    setMessage("");
+    if (moveCount < selectedOpeningMoves.length) {
+      const gameCopy = { ...game };
+      const move = gameCopy.move({ from: selectedSquare, to: square });
+      if (!move) {
+        setSelectedSquare(square);
+        return;
+      }
+      if (move.san !== selectedOpeningMoves[moveCount]) {
+        gameCopy.undo();
+        setMessage("Try again... ");
+      }
+      if (move.san === selectedOpeningMoves[moveCount]) {
+        setGame(gameCopy);
+        if (sound) {
+          moveSound.play();
+        }
+        const newMoveCount = moveCount + 1;
+        setMoveCount(newMoveCount);
+        if (newMoveCount === selectedOpeningMoves.length && hasChild) {
+          setMessage("Choose continuation");
+        } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
+          setMessage("Out of book, but follow your curiosity...");
+        }
+      }
+      if (game.in_check()) {
+        setMessage("check");
+      }
+    } else if (moveCount >= selectedOpeningMoves.length && hasChild) {
+      setMessage("Choose continuation");
+    } else if (moveCount >= selectedOpeningMoves.length && !hasChild) {
+      const gameCopy = { ...game };
+      gameCopy.move({ from: selectedSquare, to: square });
+      setMessage("Out of book, but follow your curiosity...");
+      if (sound) {
+        moveSound.play();
+      }
+      setGame(gameCopy);
+      setMoveCount(moveCount + 1);
+    }
+
+    setSelectedSquare('');
   }
 
   function handleReset() {
@@ -395,11 +451,12 @@ const StudyBoard = ({ player }) => {
       <Grid item>
         <Chessboard
           position={game.fen()}
-          onDrop={onDrop}
-          orientation={orientation}
-          darkSquareStyle={colorTheme.dark}
-          lightSquareStyle={colorTheme.light}
-          dropSquareStyle={colorTheme.drop}
+          onPieceDrop={onDrop}
+          onSquareClick={onSquareClick}
+          boardOrientation={orientation}
+          customDarkSquareStyle={colorTheme.dark}
+          customLightSquareStyle={colorTheme.light}
+          customDropSquareStyle={colorTheme.drop}
         />
         <FormControl
           sx={{ mt: 1.5, minWidth: 120 }}

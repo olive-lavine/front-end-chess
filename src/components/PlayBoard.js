@@ -34,6 +34,7 @@ const PlayBoard = ({ player }) => {
 
   const [selectedSquare, setSelectedSquare] = useState('');
   const [optionSquares, setOptionSquares] = useState({});
+  const [cloudEval, setCloudEval] = useState("");
 
 
   const moveSound = new Audio(sound);
@@ -71,12 +72,51 @@ const PlayBoard = ({ player }) => {
       });
   }, []);
 
+  const getCloudEvalAsync = (fen) => {
+    return axios
+      .get(`https://lichess.org/api/cloud-eval?fen=${fen}`)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        setCloudEval("")
+        throw new Error("error getting cloud eval");
+      });
+  };
+
+  const getCloudEval= useCallback((fen) => {
+    console.log(fen)
+    getCloudEvalAsync(fen)
+      .then((response) => {
+        console.log(response)
+        if (response.pvs) {
+          const num = response.pvs[0].cp
+          if (num === 0) {
+            setCloudEval(0)
+          } else if (num > 0) {
+            setCloudEval('+'+Math.ceil((num/100) * 10) / 10);
+          } else if (num < 0) {
+            setCloudEval(Math.ceil((num/100) * 10) / 10);
+          } else {
+            game.turn === 'w' 
+              ? setCloudEval('#' + response.pvs[0].mate) 
+              : setCloudEval('#-' + response.pvs[0].mate);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
   // keep track of move logic for openings
   function moveLogic(sourceSquare, targetSquare) {
       setMoveCount(moveCount + 1);
       if (sound) {
         moveSound.play();
       }
+      getCloudEval(game.fen())
 
       const uciMove = `${sourceSquare}${targetSquare}`;
       if (!uci) {
@@ -280,6 +320,7 @@ const PlayBoard = ({ player }) => {
     getOpening("");
     setSelectedSquare('');
     setOptionSquares({});
+    setCloudEval("")
   }
 
   function handleUndo() {
@@ -287,11 +328,17 @@ const PlayBoard = ({ player }) => {
     gameCopy.undo();
     setGame(gameCopy);
     setMoveCount(moveCount - 1);
+    getCloudEval(game.fen())
     setUci(uci.slice(0, -5));
     if (uci.slice(0, -5)) {
       getOpening(uci.slice(0, -5));
     } else {
       handleReset();
+    }
+    if (game.in_check()) {
+      setMessage("check");
+    } else {
+      setMessage("");
     }
   }
 
@@ -334,140 +381,78 @@ const PlayBoard = ({ player }) => {
       setSound("/assets/sounds/space.mp3");
     }
   }
-
-
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} sm={6}>
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h6">{opening}</Typography>
-        </Toolbar>
-      </Grid>
-      <Grid item xs={10} sm={8} md={6} sx={{ justifyContent: 'center' }}>
-        <Chessboard
-          position={game.fen()}
-          onPieceDrop={onDrop}
-          onMouseOutSquare={onMouseOutSquare}
-          onMouseOverSquare={onMouseOverSquare}
-          onSquareClick={onSquareClick}
-          boardOrientation={orientation}
-          customDarkSquareStyle={colorTheme.dark}
-          customLightSquareStyle={colorTheme.light}
-          customDropSquareStyle={colorTheme.drop}
-          customSquareStyles={optionSquares}
-        />
-      </Grid>
-      <Grid item xs={10} sm={4} md={3} >
-        <ButtonGroup
-          variant="outlined"
-          orientation="vertical"
-          size="large"
-          aria-label="small button group"
-        >
-          <Button onClick={handleReset}>start over</Button>
-          <Button onClick={handleUndo}>⇐</Button>
-          <Button onClick={handleFlip}>flip</Button>
-        </ButtonGroup>
-        <p></p>
-        {displayTopMoves()}
-        <p></p>
-        <Grid
-          item
-          sx={{
-            maxWidth: 200,
-            padding: 0.5,
-          }}
-        >
-          {game.pgn()}
-          <p></p>
-          <Grid item>{displayAddOpening()}</Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <Toolbar sx={{ justifyContent: "center" }}>
+            <Typography variant="h6">{opening}</Typography>
+          </Toolbar>
+          <Toolbar sx={{ justifyContent: "center" }}>
+            <Typography variant="h7">{cloudEval}</Typography>
+          </Toolbar>
         </Grid>
+        <Grid item xs={10} sm={8} md={6} >
+          <Chessboard
+            position={game.fen()}
+            onPieceDrop={onDrop}
+            onMouseOutSquare={onMouseOutSquare}
+            onMouseOverSquare={onMouseOverSquare}
+            onSquareClick={onSquareClick}
+            boardOrientation={orientation}
+            customDarkSquareStyle={colorTheme.dark}
+            customLightSquareStyle={colorTheme.light}
+            customDropSquareStyle={colorTheme.drop}
+            customSquareStyles={optionSquares}
+          />
+          <Typography class = "message" > {message}</Typography>
+        </Grid>
+        <Grid item xs={10} sm={4} md={3} >
+          <ButtonGroup
+            variant="outlined"
+            orientation="vertical"s
+            size="large"
+            aria-label="small button group"
+          >
+            <Button onClick={handleReset}>start over</Button>
+            <Button onClick={handleUndo}>⇐</Button>
+            <Button onClick={handleFlip}>flip</Button>
+          </ButtonGroup>
+          <p></p>
+          {displayTopMoves()}
+          <p></p>
+          <Grid
+            item
+            sx={{
+              maxWidth: 200,
+              padding: 0.5,
+            }}
+          >
+            {game.pgn()}
+            <p></p>
+            <Grid item>{displayAddOpening()}</Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <FormControl
+            sx={{ mt: 1.5, minWidth: 120 }}
+            size="small"
+            margin="dense"
+          >
+            <InputLabel>colors</InputLabel>
+            <Select onChange={handleThemeChange} value="">
+              <MenuItem value="blue">Blue</MenuItem>
+              <MenuItem value="rose">Rose</MenuItem>
+              <MenuItem value="mint">Mint</MenuItem>
+              <MenuItem value="neon">Neon</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        {/* <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <span class="message">{message}</span>
+        </Grid> */}
       </Grid>
-      <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
-        <FormControl
-          sx={{ mt: 1.5, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>colors</InputLabel>
-          <Select onChange={handleThemeChange} value="">
-            <MenuItem value="blue">Blue</MenuItem>
-            <MenuItem value="rose">Rose</MenuItem>
-            <MenuItem value="mint">Mint</MenuItem>
-            <MenuItem value="neon">Neon</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
-      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-        <span class="message">{message}</span>
-      </Grid>
-    </Grid>
-  );
-};
+    );
+    };
+
 
 export default PlayBoard;
-
-// return (
-//   <Grid container>
-//     <Grid item xs={6}>
-//       <Toolbar sx={{ justifyContent: "center" }}>
-//         <Typography variant="h6">{opening}</Typography>
-//       </Toolbar>
-//     </Grid>
-//     <Grid item>
-//       <Chessboard
-//         position={game.fen()}
-//         onPieceDrop={onDrop}
-//         onMouseOutSquare={onMouseOutSquare}
-//         onMouseOverSquare={onMouseOverSquare}
-//         onSquareClick={onSquareClick}
-//         boardOrientation={orientation}
-//         customDarkSquareStyle={colorTheme.dark}
-//         customLightSquareStyle={colorTheme.light}
-//         customDropSquareStyle={colorTheme.drop}
-//         customSquareStyles={optionSquares}
-//       />
-//       <FormControl
-//         sx={{ mt: 1.5, minWidth: 120 }}
-//         size="small"
-//         margin="dense"
-//       >
-//         <InputLabel>colors</InputLabel>
-//         <Select onChange={handleThemeChange} value="">
-//           <MenuItem value="blue">Blue</MenuItem>
-//           <MenuItem value="rose">Rose</MenuItem>
-//           <MenuItem value="mint">Mint</MenuItem>
-//           <MenuItem value="neon">Neon</MenuItem>
-//         </Select>
-//       </FormControl>
-//       <span class="message">{message}</span>
-//     </Grid>
-//     <Grid item sx={{ ml: 2, width: 300 }}>
-//       <ButtonGroup
-//         variant="outlined"
-//         orientation="vertical"
-//         size="large"
-//         aria-label="small button group"
-//       >
-//         <Button onClick={handleReset}>start over</Button>
-//         <Button onClick={handleUndo}>⇐</Button>
-//         <Button onClick={handleFlip}>flip</Button>
-//       </ButtonGroup>
-//       <p></p>
-//       {displayTopMoves()}
-//       <p></p>
-//       <Grid
-//         item
-//         sx={{
-//           maxWidth: 200,
-//           padding: 0.5,
-//         }}
-//       >
-//         {game.pgn()}
-//         <p></p>
-//         <Grid item>{displayAddOpening()}</Grid>
-//       </Grid>
-//     </Grid>
-//   </Grid>
-// );
-// };
