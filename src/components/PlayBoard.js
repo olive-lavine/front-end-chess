@@ -11,6 +11,8 @@ import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
+import Paper from '@mui/material/Paper';
+import { Box } from "@mui/system";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
 const baseUrl = "http://localhost:8080/players/";
@@ -31,10 +33,12 @@ const PlayBoard = ({ player }) => {
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
   const [sound, setSound] = useState("");
+  const [theme, setTheme] = useState("blue")
 
   const [selectedSquare, setSelectedSquare] = useState('');
   const [optionSquares, setOptionSquares] = useState({});
-  const [cloudEval, setCloudEval] = useState("");
+  const [cloudEval, setCloudEval] = useState(0.0);
+
 
 
   const moveSound = new Audio(sound);
@@ -320,7 +324,7 @@ const PlayBoard = ({ player }) => {
     getOpening("");
     setSelectedSquare('');
     setOptionSquares({});
-    setCloudEval("")
+    setCloudEval(0)
   }
 
   function handleUndo() {
@@ -348,6 +352,7 @@ const PlayBoard = ({ player }) => {
 
   function handleThemeChange(event) {
     const theme = event.target.value;
+    setTheme(theme)
     if (theme === "blue") {
       setColorTheme({
         light: { backgroundColor: "rgb(217, 227, 242)" },
@@ -381,17 +386,19 @@ const PlayBoard = ({ player }) => {
       setSound("/assets/sounds/space.mp3");
     }
   }
+
+
   return (
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <Toolbar sx={{ justifyContent: "center" }}>
             <Typography variant="h6">{opening}</Typography>
           </Toolbar>
-          <Toolbar sx={{ justifyContent: "center" }}>
+          {/* <Toolbar sx={{ justifyContent: "center" }}>
             <Typography variant="h7">{cloudEval}</Typography>
-          </Toolbar>
+          </Toolbar> */}
         </Grid>
-        <Grid item xs={10} sm={8} md={6} >
+        <Grid item xs={10} sm={8}  >
           <Chessboard
             position={game.fen()}
             onPieceDrop={onDrop}
@@ -429,17 +436,18 @@ const PlayBoard = ({ player }) => {
           >
             {game.pgn()}
             <p></p>
+            <Box sx ={{height: '1.75rem', width: '3rem', borderColor:'grey', borderRadius: 1, }}border={1.5} align="center" >{cloudEval}</Box>
             <Grid item>{displayAddOpening()}</Grid>
           </Grid>
-        </Grid>
-        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+        {/* </Grid>
+        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}> */}
           <FormControl
             sx={{ mt: 1.5, minWidth: 120 }}
             size="small"
             margin="dense"
           >
             <InputLabel>colors</InputLabel>
-            <Select onChange={handleThemeChange} value="">
+            <Select onChange={handleThemeChange} value={theme} label="colors">
               <MenuItem value="blue">Blue</MenuItem>
               <MenuItem value="rose">Rose</MenuItem>
               <MenuItem value="mint">Mint</MenuItem>
