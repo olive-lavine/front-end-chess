@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import Paper from '@mui/material/Paper';
+import Paper from "@mui/material/Paper";
 import { Box } from "@mui/system";
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
@@ -33,13 +33,11 @@ const PlayBoard = ({ player }) => {
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
   const [sound, setSound] = useState("");
-  const [theme, setTheme] = useState("blue")
+  const [theme, setTheme] = useState("blue");
 
-  const [selectedSquare, setSelectedSquare] = useState('');
+  const [selectedSquare, setSelectedSquare] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
   const [cloudEval, setCloudEval] = useState(0.0);
-
-
 
   const moveSound = new Audio(sound);
 
@@ -84,68 +82,99 @@ const PlayBoard = ({ player }) => {
       })
       .catch((err) => {
         console.log(err);
-        setCloudEval("")
+        setCloudEval("");
         throw new Error("error getting cloud eval");
       });
   };
 
-  const getCloudEval= useCallback((fen) => {
-    console.log(fen)
-    getCloudEvalAsync(fen)
+  const getSfEvalAsync = (fen) => {
+    const requestBody = { fen };
+    return axios
+      .post(`http://localhost:3000/start-analysing/`, requestBody)
       .then((response) => {
-        console.log(response)
+        const id = response.data.id;
+        return new Promise((resolve) => setTimeout(() => resolve(id), 5000));
+      })
+      .then((id) => {
+        return axios.post(`http://localhost:3000/get-best-lines/`, { id });
+      })
+      .then((response2) => {
+        console.log(response2);
+      })
+      .catch((err) => {
+        console.log(err);
+        setCloudEval("?");
+        throw new Error("error getting stockfish eval");
+      });
+  };
+
+  function getSfEval(fen) {}
+
+  const getCloudEval = useCallback((fen) => {
+    // Split the FEN string on spaces
+    const fenParts = fen.split(" ");
+    // Update the position part by setting the en passant square to '-'
+    fenParts[3] = "-";
+    // Join the modified FEN parts back into a single string
+    const fenOutput = fenParts.join(" ");
+    console.log(fenOutput);
+    getCloudEvalAsync(fenOutput)
+      .then((response) => {
+        console.log(response);
         if (response.pvs) {
-          const num = response.pvs[0].cp
+          const num = response.pvs[0].cp;
           if (num === 0) {
-            setCloudEval(0)
+            setCloudEval(0);
           } else if (num > 0) {
-            setCloudEval('+'+Math.ceil((num/100) * 10) / 10);
+            setCloudEval("+" + Math.ceil((num / 100) * 10) / 10);
           } else if (num < 0) {
-            setCloudEval(Math.ceil((num/100) * 10) / 10);
+            setCloudEval(Math.ceil((num / 100) * 10) / 10);
           } else {
-            game.turn === 'w' 
-              ? setCloudEval('#' + response.pvs[0].mate) 
-              : setCloudEval('#-' + response.pvs[0].mate);
+            game.turn === "w"
+              ? setCloudEval("#" + response.pvs[0].mate)
+              : setCloudEval("#-" + response.pvs[0].mate);
           }
         }
       })
       .catch((err) => {
         console.log(err);
+        getSfEvalAsync(fenOutput);
       });
   }, []);
 
   // keep track of move logic for openings
   function moveLogic(sourceSquare, targetSquare) {
-      setMoveCount(moveCount + 1);
-      if (sound) {
-        moveSound.play();
-      }
-      getCloudEval(game.fen())
+    setMoveCount(moveCount + 1);
+    if (sound) {
+      moveSound.play();
+    }
+    getCloudEval(game.fen());
 
-      const uciMove = `${sourceSquare}${targetSquare}`;
-      if (!uci) {
-        setUci(uciMove);
-        getOpening(uciMove);
-      } else {
-        setUci(`${uci},${uciMove}`);
-        getOpening(`${uci},${uciMove}`);
-      }
-
+    const uciMove = `${sourceSquare}${targetSquare}`;
+    if (!uci) {
+      setUci(uciMove);
+      getOpening(uciMove);
+    } else {
+      setUci(`${uci},${uciMove}`);
+      getOpening(`${uci},${uciMove}`);
+    }
   }
 
   // when user drags/drops pieces
   function onDrop(sourceSquare, targetSquare) {
     setMessage("");
     const gameCopy = { ...game };
-    const move = gameCopy.move({ 
-      from: sourceSquare, 
+    const move = gameCopy.move({
+      from: sourceSquare,
       to: targetSquare,
-      promotion: 'q',
+      promotion: "q",
     });
     setGame(gameCopy);
 
-    if (move) { moveLogic(sourceSquare, targetSquare) }
-    
+    if (move) {
+      moveLogic(sourceSquare, targetSquare);
+    }
+
     if (game.in_check()) {
       setMessage("check");
     }
@@ -153,11 +182,11 @@ const PlayBoard = ({ player }) => {
       setMessage("checkmate");
     }
 
-    setSelectedSquare('');
+    setSelectedSquare("");
     setOptionSquares({});
   }
 
-  // when user clicks on a piece 
+  // when user clicks on a piece
   function onSquareClick(square) {
     if (game.get(square) && !selectedSquare) {
       setSelectedSquare(square);
@@ -169,7 +198,7 @@ const PlayBoard = ({ player }) => {
     const move = gameCopy.move({
       from: selectedSquare,
       to: square,
-      promotion: 'q' // always promote to a queen for example simplicity
+      promotion: "q", // always promote to a queen for example simplicity
     });
 
     // if illegal move, reset initial selected square
@@ -181,7 +210,7 @@ const PlayBoard = ({ player }) => {
 
     // make move
     setGame(gameCopy);
-    moveLogic(selectedSquare, square) 
+    moveLogic(selectedSquare, square);
     setMessage("");
 
     if (game.in_check()) {
@@ -191,25 +220,25 @@ const PlayBoard = ({ player }) => {
       setMessage("checkmate");
     }
 
-    setSelectedSquare('');
+    setSelectedSquare("");
     setOptionSquares({});
   }
 
   function onMouseOverSquare(square) {
-    if(!selectedSquare) getMoveOptions(square);
+    if (!selectedSquare) getMoveOptions(square);
   }
 
   function onMouseOutSquare() {
-      if (Object.keys(optionSquares).length !== 0 && !selectedSquare) setOptionSquares({});
-    
+    if (Object.keys(optionSquares).length !== 0 && !selectedSquare)
+      setOptionSquares({});
   }
 
-  // highlight move options for selected/hovered piece 
+  // highlight move options for selected/hovered piece
   function getMoveOptions(square) {
     // get valid moves
     const moves = game.moves({
       square,
-      verbose: true
+      verbose: true,
     });
 
     // no moves found
@@ -222,10 +251,12 @@ const PlayBoard = ({ player }) => {
     const options = {};
     moves.forEach((move) => {
       options[move.to] = {
-        background: game.get(move.to) && game.get(move.to).color !== game.get(square).color
-          ? `radial-gradient(circle at center, transparent 55%, rgba(0,0,0,.1) 55% )`// opponent piece
-          : 'radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)', // normal piece/square
-        borderRadius: '50%',
+        background:
+          game.get(move.to) &&
+          game.get(move.to).color !== game.get(square).color
+            ? `radial-gradient(circle at center, transparent 55%, rgba(0,0,0,.1) 55% )` // opponent piece
+            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)", // normal piece/square
+        borderRadius: "50%",
       };
     });
     setOptionSquares(options);
@@ -268,20 +299,20 @@ const PlayBoard = ({ player }) => {
     );
   }
 
-// make move chosen from top moves list
+  // make move chosen from top moves list
   function handleMoveClick(chosenMove) {
     // handle castles
     if (chosenMove === "e1h1") {
-      onDrop("e1","g1");
+      onDrop("e1", "g1");
     }
     if (chosenMove === "e8h8") {
-      onDrop("e8","g8");
+      onDrop("e8", "g8");
     }
     if (chosenMove === "e1a1") {
-      onDrop("e1","c1");
+      onDrop("e1", "c1");
     }
     if (chosenMove === "e8a8") {
-      onDrop("e8","c8");
+      onDrop("e8", "c8");
     }
     onDrop(chosenMove.slice(0, 2), chosenMove.slice(2));
   }
@@ -322,9 +353,9 @@ const PlayBoard = ({ player }) => {
     setMoveCount(0);
     setMessage("");
     getOpening("");
-    setSelectedSquare('');
+    setSelectedSquare("");
     setOptionSquares({});
-    setCloudEval(0)
+    setCloudEval(0);
   }
 
   function handleUndo() {
@@ -332,7 +363,7 @@ const PlayBoard = ({ player }) => {
     gameCopy.undo();
     setGame(gameCopy);
     setMoveCount(moveCount - 1);
-    getCloudEval(game.fen())
+    getCloudEval(game.fen());
     setUci(uci.slice(0, -5));
     if (uci.slice(0, -5)) {
       getOpening(uci.slice(0, -5));
@@ -352,7 +383,7 @@ const PlayBoard = ({ player }) => {
 
   function handleThemeChange(event) {
     const theme = event.target.value;
-    setTheme(theme)
+    setTheme(theme);
     if (theme === "blue") {
       setColorTheme({
         light: { backgroundColor: "rgb(217, 227, 242)" },
@@ -387,80 +418,91 @@ const PlayBoard = ({ player }) => {
     }
   }
 
-
   return (
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <Toolbar sx={{ justifyContent: "center" }}>
-            <Typography variant="h6">{opening}</Typography>
-          </Toolbar>
-          {/* <Toolbar sx={{ justifyContent: "center" }}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={6}>
+        <Toolbar sx={{ justifyContent: "center" }}>
+          <Typography variant="h6">{opening}</Typography>
+        </Toolbar>
+        {/* <Toolbar sx={{ justifyContent: "center" }}>
             <Typography variant="h7">{cloudEval}</Typography>
           </Toolbar> */}
-        </Grid>
-        <Grid item xs={10} sm={8}  >
-          <Chessboard
-            position={game.fen()}
-            onPieceDrop={onDrop}
-            onMouseOutSquare={onMouseOutSquare}
-            onMouseOverSquare={onMouseOverSquare}
-            onSquareClick={onSquareClick}
-            boardOrientation={orientation}
-            customDarkSquareStyle={colorTheme.dark}
-            customLightSquareStyle={colorTheme.light}
-            customDropSquareStyle={colorTheme.drop}
-            customSquareStyles={optionSquares}
-          />
-          <Typography class = "message" > {message}</Typography>
-        </Grid>
-        <Grid item xs={10} sm={4} md={3} >
-          <ButtonGroup
-            variant="outlined"
-            orientation="vertical"s
-            size="large"
-            aria-label="small button group"
-          >
-            <Button onClick={handleReset}>start over</Button>
-            <Button onClick={handleUndo}>⇐</Button>
-            <Button onClick={handleFlip}>flip</Button>
-          </ButtonGroup>
+      </Grid>
+      <Grid item xs={10} sm={8}>
+        <Chessboard
+          position={game.fen()}
+          onPieceDrop={onDrop}
+          onMouseOutSquare={onMouseOutSquare}
+          onMouseOverSquare={onMouseOverSquare}
+          onSquareClick={onSquareClick}
+          boardOrientation={orientation}
+          customDarkSquareStyle={colorTheme.dark}
+          customLightSquareStyle={colorTheme.light}
+          customDropSquareStyle={colorTheme.drop}
+          customSquareStyles={optionSquares}
+        />
+        <Typography class="message"> {message}</Typography>
+      </Grid>
+      <Grid item xs={10} sm={4} md={3}>
+        <Box
+          sx={{
+            height: "1.75rem",
+            width: "3rem",
+            borderColor: "grey",
+            borderRadius: 1,
+          }}
+          border={1.5}
+          align="center"
+        >
+          {cloudEval}
+        </Box>
+        <p></p>
+        <ButtonGroup
+          variant="outlined"
+          orientation="vertical"
+          s
+          size="large"
+          aria-label="small button group"
+        >
+          <Button onClick={handleReset}>start over</Button>
+          <Button onClick={handleUndo}>⇐</Button>
+          <Button onClick={handleFlip}>flip</Button>
+        </ButtonGroup>
+        <p></p>
+        {displayTopMoves()}
+        <p></p>
+        <Grid
+          item
+          sx={{
+            maxWidth: 200,
+            padding: 0.5,
+          }}
+        >
+          {game.pgn()}
           <p></p>
-          {displayTopMoves()}
-          <p></p>
-          <Grid
-            item
-            sx={{
-              maxWidth: 200,
-              padding: 0.5,
-            }}
-          >
-            {game.pgn()}
-            <p></p>
-            <Box sx ={{height: '1.75rem', width: '3rem', borderColor:'grey', borderRadius: 1, }}border={1.5} align="center" >{cloudEval}</Box>
-            <Grid item>{displayAddOpening()}</Grid>
-          </Grid>
+          <Grid item>{displayAddOpening()}</Grid>
+        </Grid>
         {/* </Grid>
         <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}> */}
-          <FormControl
-            sx={{ mt: 1.5, minWidth: 120 }}
-            size="small"
-            margin="dense"
-          >
-            <InputLabel>colors</InputLabel>
-            <Select onChange={handleThemeChange} value={theme} label="colors">
-              <MenuItem value="blue">Blue</MenuItem>
-              <MenuItem value="rose">Rose</MenuItem>
-              <MenuItem value="mint">Mint</MenuItem>
-              <MenuItem value="neon">Neon</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        {/* <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+        <FormControl
+          sx={{ mt: 1.5, minWidth: 120 }}
+          size="small"
+          margin="dense"
+        >
+          <InputLabel>colors</InputLabel>
+          <Select onChange={handleThemeChange} value={theme} label="colors">
+            <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="rose">Rose</MenuItem>
+            <MenuItem value="mint">Mint</MenuItem>
+            <MenuItem value="neon">Neon</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+      {/* <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
           <span class="message">{message}</span>
         </Grid> */}
-      </Grid>
-    );
-    };
-
+    </Grid>
+  );
+};
 
 export default PlayBoard;
