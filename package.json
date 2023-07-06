@@ -11,7 +11,6 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^0.27.2",
     "chess.js": "^0.13.4",
-    "chessboardjsx": "^2.4.7",
     "react": "^18.2.0",
     "react-chessboard": "^2.0.8",
     "react-dom": "^18.2.0",

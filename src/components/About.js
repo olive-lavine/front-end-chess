@@ -56,8 +56,8 @@ function About() {
           Chess.js{" "}
         </Link>
         and{" "}
-        <Link color="rgb(52, 108, 140)" href="https://www.chessboardjsx.com/">
-          Chessboardjsx
+        <Link color="rgb(52, 108, 140)" href="https://github.com/Clariity/react-chessboard">
+          React-Chessboard
         </Link>{" "}
         for the chess board,{" "}
         <Link color="rgb(52, 108, 140)" href="https://kenney.nl/">

@@ -1,4 +1,3 @@
-// import Chessboard from "chessboardjsx";
 import { Chessboard } from "react-chessboard";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chess } from "chess.js";
@@ -18,13 +17,13 @@ const baseUrl = "http://localhost:8080/players";
 
 const StudyBoard = ({ player }) => {
   const chess = new Chess();
+
   const [game, setGame] = useState(chess);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
   const [openings, setOpenings] = useState([]);
   const [customOpenings, setCustomOpenings] = useState([]);
-  const [openingPgn, setOpeningPgn] = useState("");
   const [openingName, setOpeningName] = useState("");
   const [isShown, setIsShown] = useState(false);
   const [hasChild, setHasChild] = useState(false);
@@ -40,6 +39,9 @@ const StudyBoard = ({ player }) => {
   const [sound, setSound] = useState("");
   const moveSound = useMemo(() => new Audio(sound), [sound]);
   const [selectedSquare, setSelectedSquare] = useState('');
+  const [hint, setHint] = useState({});
+  const [totalReset, setTotalReset] = useState(true);
+
 
   const getOpeningsAsync = (parentId) => {
     return axios
@@ -113,7 +115,7 @@ const StudyBoard = ({ player }) => {
       if (newMoveCount === selectedOpeningMoves.length && hasChild) {
         setMessage("Choose continuation");
       } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
-        setMessage("Out of book, but follow your curiosity...");
+        setMessage("Out of book..");
       }
     }, 200);
     setTimeout(() => {
@@ -166,7 +168,7 @@ const StudyBoard = ({ player }) => {
         if (newMoveCount === selectedOpeningMoves.length && hasChild) {
           setMessage("Choose continuation");
         } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
-          setMessage("Out of book, but follow your curiosity...");
+          setMessage("Out of book...");
         }
       }
       if (game.in_check()) {
@@ -177,7 +179,7 @@ const StudyBoard = ({ player }) => {
     } else if (moveCount >= selectedOpeningMoves.length && !hasChild) {
       const gameCopy = { ...game };
       gameCopy.move({ from: sourceSquare, to: targetSquare });
-      setMessage("Out of book, but follow your curiosity...");
+      setMessage("Out of book...");
       if (sound) {
         moveSound.play();
       }
@@ -248,11 +250,13 @@ const StudyBoard = ({ player }) => {
     setMessage("");
     setSelectedOpeningMoves([]);
     setOpeningName("");
-    setOpeningPgn("");
-    setOpeningHistory({});
-    setIdHistory([]);
-    getOpenings("");
-    setCustomSelected(false);
+    setHint({})
+    if(totalReset){
+      setOpeningHistory({});
+      setIdHistory([]);
+      getOpenings("");
+      setCustomSelected(false);
+    }
   }
   function handleUndo() {
     setMessage("");
@@ -284,7 +288,6 @@ const StudyBoard = ({ player }) => {
     for (let i = 0; i < openings.length; i++) {
       if (openings[i].id === openingId) {
         opening = openings[i];
-        setOpeningPgn(opening.pgn);
         setHasChild(opening.hasChild);
         setOpeningName(opening.name);
         historyCopy[openingId] = {
@@ -309,7 +312,9 @@ const StudyBoard = ({ player }) => {
   };
 
   const handleCustomOpeningChange = (event) => {
-    setMessage("");
+    setTotalReset(false);
+    handleReset();
+    setTotalReset(true);
     setCustomSelected(true);
     const openingId = parseInt(event.target.value);
 
@@ -318,7 +323,6 @@ const StudyBoard = ({ player }) => {
     for (let i = 0; i < customOpenings.length; i++) {
       if (customOpenings[i].id === openingId) {
         opening = customOpenings[i];
-        setOpeningPgn(opening.pgn);
         setHasChild(opening.hasChild);
         setOpeningName(opening.name);
       }
@@ -335,7 +339,7 @@ const StudyBoard = ({ player }) => {
   };
 
   function handleView() {
-    if (selectedOpeningMoves.length > 0) {
+    if (selectedOpeningMoves.length > 0 && moveCount < selectedOpeningMoves.length) {
       return (
         <section>
           <Button
@@ -345,26 +349,38 @@ const StudyBoard = ({ player }) => {
               setIsShown((current) => !current);
             }}
           >
-            {!isShown && <section>view line</section>}
-            {isShown && <section>hide line</section>}
+            {!isShown && <section>view next move</section>}
+            {isShown && <section>hide next move</section>}
           </Button>
-          {isShown && (
-            <Grid
-              item
-              sx={{
-                maxWidth: 250,
-                padding: 0.5,
-                ml: 2,
-                fontSize: "large",
-              }}
-            >
-              {openingPgn}
-            </Grid>
-          )}
         </section>
       );
     }
+    else {
+      return(<section></section>);
+    }
   }
+
+  // highlight next square in selected opening if user wants hints displayed
+  useEffect(() => {
+    if (isShown && moveCount < selectedOpeningMoves.length) {
+      const tracker = new Chess();
+      tracker.load_pgn(game.pgn());
+      const move = tracker.move(selectedOpeningMoves[moveCount]);
+      if (move) {
+        if ((orientation === 'white' && moveCount % 2 === 0) || (orientation === 'black' && moveCount % 2 !== 0)) {
+            const hints = {
+              [move.from]: { backgroundColor: "rgb(254, 254, 205)", boxShadow: "inset 0 0 1px 4px rgb(254, 254, 77)" },
+              [move.to]: { backgroundColor: "rgb(254, 254, 205)", boxShadow: "inset 0 0 1px 4px rgb(254, 254, 77)" },
+            };
+            setHint(hints);
+          }
+      } 
+    } else {
+      setHint({});
+    }
+  }, [isShown, moveCount, game, selectedOpeningMoves, orientation]);
+
+
 
   function toggleOpenings() {
     if (selectedOpeningMoves.length > 0 && !customSelected) {
@@ -378,13 +394,11 @@ const StudyBoard = ({ player }) => {
             onClick={() => {
               if (previousId) {
                 getOpenings(previousId);
-                setOpeningPgn(openingHistory[previousId].pgn);
                 setOpeningName(openingHistory[previousId].name);
                 setSelectedOpeningMoves(openingHistory[previousId].moves);
                 setHasChild(openingHistory[previousId].hasChild);
               } else {
                 getOpenings("");
-                setOpeningPgn("");
                 setOpeningName("");
                 setSelectedOpeningMoves("");
               }
@@ -448,7 +462,7 @@ const StudyBoard = ({ player }) => {
           <Typography variant="h6">{openingName}</Typography>
         </Toolbar>
       </Grid>
-      <Grid item>
+      <Grid item xs={10} sm={8}>
         <Chessboard
           position={game.fen()}
           onPieceDrop={onDrop}
@@ -457,6 +471,7 @@ const StudyBoard = ({ player }) => {
           customDarkSquareStyle={colorTheme.dark}
           customLightSquareStyle={colorTheme.light}
           customDropSquareStyle={colorTheme.drop}
+          customSquareStyles={hint}
         />
         <FormControl
           sx={{ mt: 1.5, minWidth: 120 }}
@@ -520,7 +535,6 @@ const StudyBoard = ({ player }) => {
         <p></p>
         {handleView()}
         <p></p>
-        {!isShown && (
           <Grid
             item
             sx={{
@@ -531,7 +545,6 @@ const StudyBoard = ({ player }) => {
           >
             {game.pgn()}
           </Grid>
-        )}
       </Grid>
     </Grid>
   );

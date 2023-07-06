@@ -113,11 +113,10 @@ const PlayBoard = ({ player }) => {
   const getCloudEval = useCallback((fen) => {
     // Split the FEN string on spaces
     const fenParts = fen.split(" ");
-    // Update the position part by setting the en passant square to '-'
+    // Update the en passant square to '-'
     fenParts[3] = "-";
     // Join the modified FEN parts back into a single string
     const fenOutput = fenParts.join(" ");
-    console.log(fenOutput);
     getCloudEvalAsync(fenOutput)
       .then((response) => {
         console.log(response);
@@ -138,6 +137,7 @@ const PlayBoard = ({ player }) => {
       })
       .catch((err) => {
         console.log(err);
+        setCloudEval('?')
         getSfEvalAsync(fenOutput);
       });
   }, []);
@@ -420,30 +420,29 @@ const PlayBoard = ({ player }) => {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={12} sm={6} >
         <Toolbar sx={{ justifyContent: "center" }}>
           <Typography variant="h6">{opening}</Typography>
         </Toolbar>
-        {/* <Toolbar sx={{ justifyContent: "center" }}>
-            <Typography variant="h7">{cloudEval}</Typography>
-          </Toolbar> */}
       </Grid>
-      <Grid item xs={10} sm={8}>
-        <Chessboard
-          position={game.fen()}
-          onPieceDrop={onDrop}
-          onMouseOutSquare={onMouseOutSquare}
-          onMouseOverSquare={onMouseOverSquare}
-          onSquareClick={onSquareClick}
-          boardOrientation={orientation}
-          customDarkSquareStyle={colorTheme.dark}
-          customLightSquareStyle={colorTheme.light}
-          customDropSquareStyle={colorTheme.drop}
-          customSquareStyles={optionSquares}
-        />
-        <Typography class="message"> {message}</Typography>
+      <Grid item xs={10} sm={8} >
+        <Box sx ={{maxHeight:'500px'}}>
+          <Chessboard
+            position={game.fen()}
+            onPieceDrop={onDrop}
+            onMouseOutSquare={onMouseOutSquare}
+            onMouseOverSquare={onMouseOverSquare}
+            onSquareClick={onSquareClick}
+            boardOrientation={orientation}
+            customDarkSquareStyle={colorTheme.dark}
+            customLightSquareStyle={colorTheme.light}
+            customDropSquareStyle={colorTheme.drop}
+            customSquareStyles={optionSquares}
+          />
+          </Box>
+        <Typography className="message"> {message}</Typography>
       </Grid>
-      <Grid item xs={10} sm={4} md={3}>
+      <Grid item xs={2} sm={4} md={2}>
         <Box
           sx={{
             height: "1.75rem",
