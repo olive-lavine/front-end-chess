@@ -1,6 +1,6 @@
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Chess } from "chess.js";
 import Button from "@mui/material/Button";
 import InputLabel from "@mui/material/InputLabel";
@@ -11,15 +11,21 @@ import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import Paper from "@mui/material/Paper";
-import { Box } from "@mui/system";
+import TextField from "@mui/material/TextField";
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import Box from '@mui/material/Box';
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
 const baseUrl = "http://localhost:8080/players/";
 
 const PlayBoard = ({ player }) => {
-  const chess = new Chess();
-  const [game, setGame] = useState(chess);
+  const chessRef = useRef(new Chess());
+  const moveSound = useRef(new Audio());
+
+
+  const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
   const [opening, setOpening] = useState("");
@@ -34,12 +40,12 @@ const PlayBoard = ({ player }) => {
   });
   const [sound, setSound] = useState("");
   const [theme, setTheme] = useState("blue");
-
   const [selectedSquare, setSelectedSquare] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
   const [cloudEval, setCloudEval] = useState(0.0);
+  const [pgnInput, setpgnInput] = useState('');
+  const [error, setError] = useState(false);
 
-  const moveSound = new Audio(sound);
 
   const getOpeningAsync = (uci) => {
     return axios
@@ -119,7 +125,6 @@ const PlayBoard = ({ player }) => {
     const fenOutput = fenParts.join(" ");
     getCloudEvalAsync(fenOutput)
       .then((response) => {
-        console.log(response);
         if (response.pvs) {
           const num = response.pvs[0].cp;
           if (num === 0) {
@@ -138,7 +143,7 @@ const PlayBoard = ({ player }) => {
       .catch((err) => {
         console.log(err);
         setCloudEval('?')
-        getSfEvalAsync(fenOutput);
+        // getSfEvalAsync(fenOutput);
       });
   }, []);
 
@@ -291,7 +296,7 @@ const PlayBoard = ({ player }) => {
         </Button>
         <p></p>
         {isShown && (
-          <ButtonGroup size="small" aria-label="small button group">
+          <ButtonGroup size="small"  aria-label="small button group">
             {moves}
           </ButtonGroup>
         )}
@@ -334,7 +339,6 @@ const PlayBoard = ({ player }) => {
     return axios
       .post(`${baseUrl}custom`, requestBody)
       .then((response) => {
-        console.log(response);
         return response.data;
       })
       .catch((err) => {
@@ -342,6 +346,7 @@ const PlayBoard = ({ player }) => {
         throw new Error("error posting opening");
       });
   }
+
 
   function handleReset() {
     const gameCopy = { ...game };
@@ -356,6 +361,8 @@ const PlayBoard = ({ player }) => {
     setSelectedSquare("");
     setOptionSquares({});
     setCloudEval(0);
+    setError(false); 
+    setpgnInput('');
   }
 
   function handleUndo() {
@@ -392,6 +399,14 @@ const PlayBoard = ({ player }) => {
       });
       setSound("");
     }
+    if (theme === "classic") {
+      setColorTheme({
+        light: { backgroundColor: "rgb(240, 217, 181)" },
+        dark: { backgroundColor: "rgb(181, 136, 99)" },
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(249, 249, 249)" },
+      });
+      setSound("");
+    }
     if (theme === "rose") {
       setColorTheme({
         light: { backgroundColor: "rgb(235, 224, 224)" },
@@ -416,7 +431,35 @@ const PlayBoard = ({ player }) => {
       });
       setSound("/assets/sounds/space.mp3");
     }
-  }
+  };
+
+
+  const handleLoad = () => {
+    // Process the inputed text
+    try {
+      const gameCopy = { ...game };
+      gameCopy.load_pgn(pgnInput);
+      setGame(gameCopy);
+      getCloudEval(game.fen());
+      const history = game.history({ verbose: true })
+      const uciMoves = history.map(move => move.from + move.to).join(',');
+      setUci(uciMoves);
+      getOpening(uciMoves);
+      setError(false);
+    } catch(e){
+      console.log(e)
+      setError(true);
+  
+    }
+    // Reset the input field
+    setpgnInput('');
+  };
+
+  const handleInputChange = (event) => {
+    setpgnInput(event.target.value);
+    setError(false); 
+  };
+
 
   return (
     <Grid container spacing={2}>
@@ -442,7 +485,7 @@ const PlayBoard = ({ player }) => {
           </Box>
         <Typography className="message"> {message}</Typography>
       </Grid>
-      <Grid item xs={2} sm={4} md={2}>
+      <Grid item >
         <Box
           sx={{
             height: "1.75rem",
@@ -467,22 +510,37 @@ const PlayBoard = ({ player }) => {
           <Button onClick={handleUndo}>⇐</Button>
           <Button onClick={handleFlip}>flip</Button>
         </ButtonGroup>
-        <p></p>
         {displayTopMoves()}
-        <p></p>
         <Grid
           item
           sx={{
             maxWidth: 200,
             padding: 0.5,
+            marginTop: 1,
           }}
         >
           {game.pgn()}
-          <p></p>
           <Grid item>{displayAddOpening()}</Grid>
         </Grid>
-        {/* </Grid>
-        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'center' }}> */}
+        <Box>
+        <TextField
+          fullWidth
+          placeholder="Load PGN"
+          value ={pgnInput}
+          onChange={handleInputChange}
+          error={error}
+          helperText={error ? 'Invalid Input' : ''}
+          InputProps={{
+            sx: { fontSize: 'default' },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton edge="end" onClick={handleLoad}>
+                  <AddBoxIcon />
+                </IconButton>
+              </InputAdornment>),
+          }}
+        />
+        </Box>
         <FormControl
           sx={{ mt: 1.5, minWidth: 120 }}
           size="small"
@@ -491,15 +549,13 @@ const PlayBoard = ({ player }) => {
           <InputLabel>colors</InputLabel>
           <Select onChange={handleThemeChange} value={theme} label="colors">
             <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="classic">Classic</MenuItem>
             <MenuItem value="rose">Rose</MenuItem>
             <MenuItem value="mint">Mint</MenuItem>
             <MenuItem value="neon">Neon</MenuItem>
           </Select>
         </FormControl>
       </Grid>
-      {/* <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-          <span class="message">{message}</span>
-        </Grid> */}
     </Grid>
   );
 };

@@ -1,5 +1,5 @@
 import { Chessboard } from "react-chessboard";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Chess } from "chess.js";
 import axios from "axios";
 import Button from "@mui/material/Button";
@@ -16,9 +16,9 @@ const kBaseUrl = "http://localhost:8080/openings/parent";
 const baseUrl = "http://localhost:8080/players";
 
 const StudyBoard = ({ player }) => {
-  const chess = new Chess();
+  const chessRef = useRef(new Chess());
 
-  const [game, setGame] = useState(chess);
+  const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
   const [moveCount, setMoveCount] = useState(0);
@@ -29,6 +29,7 @@ const StudyBoard = ({ player }) => {
   const [hasChild, setHasChild] = useState(false);
   const [selectedOpeningMoves, setSelectedOpeningMoves] = useState([]);
   const [idHistory, setIdHistory] = useState([]);
+  const [selectedCustomId, setSelectedCustomId] = useState("");
   const [openingHistory, setOpeningHistory] = useState({});
   const [customSelected, setCustomSelected] = useState(false);
   const [colorTheme, setColorTheme] = useState({
@@ -104,6 +105,23 @@ const StudyBoard = ({ player }) => {
   useEffect(() => {
     getCustomOpenings(player.player_id);
   }, [getCustomOpenings, player.player_id]);
+
+  function deleteCustomOpening() {
+    return axios
+      .delete(`${baseUrl}/${player.player_id}/custom/${selectedCustomId}`)
+      .then((response) => {
+        // Update the frontend state to remove the deleted custom opening
+        const updatedOpenings = customOpenings.filter((opening) => opening.id !== selectedCustomId);
+        setCustomOpenings(updatedOpenings);
+        setTotalReset(true);
+        handleReset();
+        return response.data;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new Error("error deleting opening");
+      });
+  }
 
   const cpu_moves = useCallback(() => {
     const gameCopy = { ...game };
@@ -220,7 +238,7 @@ const StudyBoard = ({ player }) => {
         if (newMoveCount === selectedOpeningMoves.length && hasChild) {
           setMessage("Choose continuation");
         } else if (newMoveCount === selectedOpeningMoves.length && !hasChild) {
-          setMessage("Out of book, but follow your curiosity...");
+          setMessage("Out of book...");
         }
       }
       if (game.in_check()) {
@@ -317,6 +335,7 @@ const StudyBoard = ({ player }) => {
     setTotalReset(true);
     setCustomSelected(true);
     const openingId = parseInt(event.target.value);
+    setSelectedCustomId(openingId);
 
     // find selected opening
     let opening = "";
@@ -337,6 +356,18 @@ const StudyBoard = ({ player }) => {
     }
     setSelectedOpeningMoves(openingMoves);
   };
+
+  function displayDeleteOpening() {
+    if (customSelected) {
+      return (
+        <p>
+          <Button size="large" onClick={deleteCustomOpening}>
+            Delte from repertoire
+          </Button>
+        </p>
+      );
+    }
+  }
 
   function handleView() {
     if (selectedOpeningMoves.length > 0 && moveCount < selectedOpeningMoves.length) {
@@ -429,6 +460,13 @@ const StudyBoard = ({ player }) => {
       });
       setSound("");
     }
+    if (theme === "classic") {
+      setColorTheme({
+        light: { backgroundColor: "rgb(240, 217, 181)" },
+        dark: { backgroundColor: "rgb(181, 136, 99)" },
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(249, 249, 249)" },
+      });
+    }
     if (theme === "rose") {
       setColorTheme({
         light: { backgroundColor: "rgb(235, 224, 224)" },
@@ -481,6 +519,7 @@ const StudyBoard = ({ player }) => {
           <InputLabel>colors</InputLabel>
           <Select onChange={handleThemeChange} value="">
             <MenuItem value="blue">Blue</MenuItem>
+            <MenuItem value="classic">Classic</MenuItem>
             <MenuItem value="rose">Rose</MenuItem>
             <MenuItem value="mint">Mint</MenuItem>
             <MenuItem value="neon">Neon</MenuItem>
@@ -545,6 +584,7 @@ const StudyBoard = ({ player }) => {
           >
             {game.pgn()}
           </Grid>
+          <Grid item>{displayDeleteOpening()}</Grid>
       </Grid>
     </Grid>
   );
