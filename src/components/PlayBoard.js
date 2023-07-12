@@ -62,24 +62,14 @@ const PlayBoard = ({ player }) => {
   const getOpening = useCallback((uci) => {
     getOpeningAsync(uci)
       .then((response) => {
-        if (response.opening) {
-          setOpening(response.opening.name);
-        }
-        if (response.moves.length > 0) {
-          const movesList = [];
-          for (const move of response.moves) {
-            movesList.push({ san: move.san, uci: move.uci });
-          }
-          setTopMoves(movesList);
-        } else {
-          setTopMoves([]);
-        }
+        setOpening((prevOpening) => response.opening ? response.opening.name : prevOpening);
+        setTopMoves(response.moves.map(move => ({ san: move.san, uci: move.uci })));
       })
       .catch((err) => {
         console.log(err);
       });
   }, []);
-
+  
   const getCloudEvalAsync = (fen) => {
     return axios
       .get(`https://lichess.org/api/cloud-eval?fen=${fen}`)
@@ -117,35 +107,30 @@ const PlayBoard = ({ player }) => {
   function getSfEval(fen) {}
 
   const getCloudEval = useCallback((fen) => {
-    // Split the FEN string on spaces
     const fenParts = fen.split(" ");
-    // Update the en passant square to '-'
     fenParts[3] = "-";
-    // Join the modified FEN parts back into a single string
     const fenOutput = fenParts.join(" ");
+    
     getCloudEvalAsync(fenOutput)
       .then((response) => {
-        if (response.pvs) {
-          const num = response.pvs[0].cp;
+        const [pv] = response.pvs || [];
+        if (pv) {
+          const num = pv.cp;
           if (num === 0) {
             setCloudEval(0);
-          } else if (num > 0) {
-            setCloudEval("+" + Math.ceil((num / 100) * 10) / 10);
-          } else if (num < 0) {
-            setCloudEval(Math.ceil((num / 100) * 10) / 10);
+          } else if (!isNaN(num)) {
+            setCloudEval(`${num > 0 ? "+" : ""}${Math.ceil((num / 100) * 10) / 10}`);
           } else {
-            game.turn === "w"
-              ? setCloudEval("#" + response.pvs[0].mate)
-              : setCloudEval("#-" + response.pvs[0].mate);
+            setCloudEval(game.turn === "w" ? `#${pv.mate}` : `#-${pv.mate}`);
           }
         }
       })
       .catch((err) => {
         console.log(err);
-        setCloudEval('?')
-        // getSfEvalAsync(fenOutput);
+        setCloudEval('?');
       });
   }, []);
+  
 
   // keep track of move logic for openings
   function moveLogic(sourceSquare, targetSquare) {
@@ -154,18 +139,13 @@ const PlayBoard = ({ player }) => {
       moveSound.play();
     }
     getCloudEval(game.fen());
-
+  
     const uciMove = `${sourceSquare}${targetSquare}`;
-    if (!uci) {
-      setUci(uciMove);
-      getOpening(uciMove);
-    } else {
-      setUci(`${uci},${uciMove}`);
-      getOpening(`${uci},${uciMove}`);
-    }
+    const updatedUci = uci ? `${uci},${uciMove}` : uciMove;
+    setUci(updatedUci);
+    getOpening(updatedUci);
   }
-
-  // when user drags/drops pieces
+  
   function onDrop(sourceSquare, targetSquare) {
     setMessage("");
     const gameCopy = { ...game };
@@ -175,21 +155,20 @@ const PlayBoard = ({ player }) => {
       promotion: "q",
     });
     setGame(gameCopy);
-
+  
     if (move) {
       moveLogic(sourceSquare, targetSquare);
     }
-
-    if (game.in_check()) {
-      setMessage("check");
-    }
+  
     if (game.in_checkmate()) {
       setMessage("checkmate");
+    } else if (game.in_check()) {
+      setMessage("check");
     }
-
+  
     setSelectedSquare("");
     setOptionSquares({});
-  }
+  }  
 
   // when user clicks on a piece
   function onSquareClick(square) {
@@ -198,74 +177,74 @@ const PlayBoard = ({ player }) => {
       getMoveOptions(square);
       return;
     }
-    // attempt to make move
+  
     const gameCopy = { ...game };
     const move = gameCopy.move({
       from: selectedSquare,
       to: square,
-      promotion: "q", // always promote to a queen for example simplicity
+      promotion: "q",
     });
-
-    // if illegal move, reset initial selected square
-    if (game.get(square) && !move) {
+    
+     // If illegal move, reset initial selected square
+    if (!move) {
       setSelectedSquare(square);
       getMoveOptions(square);
       return;
     }
-
-    // make move
+    
+    // Make move
     setGame(gameCopy);
     moveLogic(selectedSquare, square);
     setMessage("");
-
-    if (game.in_check()) {
-      setMessage("check");
-    }
+  
     if (game.in_checkmate()) {
       setMessage("checkmate");
+    } else if (game.in_check()) {
+      setMessage("check");
     }
-
+  
     setSelectedSquare("");
     setOptionSquares({});
   }
 
   function onMouseOverSquare(square) {
-    if (!selectedSquare) getMoveOptions(square);
+    if (!selectedSquare) {
+      getMoveOptions(square);
+    }
   }
-
+  
   function onMouseOutSquare() {
-    if (Object.keys(optionSquares).length !== 0 && !selectedSquare)
+    if (!selectedSquare && Object.keys(optionSquares).length !== 0) {
       setOptionSquares({});
+    }
   }
+  
 
-  // highlight move options for selected/hovered piece
+  // Highlight move options for selected/hovered piece
   function getMoveOptions(square) {
-    // get valid moves
-    const moves = game.moves({
-      square,
-      verbose: true,
-    });
-
-    // no moves found
+    // Get valid moves
+    const moves = game.moves({ square, verbose: true });
+    
+     // No moves found
     if (moves.length === 0) {
       setOptionSquares({});
       return;
     }
-
-    // highlight move options
-    const options = {};
-    moves.forEach((move) => {
-      options[move.to] = {
+    
+    const options = moves.reduce((acc, move) => {
+      acc[move.to] = {
         background:
-          game.get(move.to) &&
-          game.get(move.to).color !== game.get(square).color
-            ? `radial-gradient(circle at center, transparent 55%, rgba(0,0,0,.1) 55% )` // opponent piece
-            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)", // normal piece/square
+          game.get(move.to) && game.get(move.to).color !== game.get(square).color
+            ? "radial-gradient(circle at center, transparent 55%, rgba(0,0,0,.1) 55%)"
+            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
         borderRadius: "50%",
       };
-    });
+      return acc;
+    }, {});
+  
     setOptionSquares(options);
   }
+  
 
   useEffect(() => {
     getOpening("");
@@ -306,21 +285,23 @@ const PlayBoard = ({ player }) => {
 
   // make move chosen from top moves list
   function handleMoveClick(chosenMove) {
-    // handle castles
-    if (chosenMove === "e1h1") {
-      onDrop("e1", "g1");
+    const castleMoves = {
+      e1h1: { source: "e1", target: "g1" },
+      e8h8: { source: "e8", target: "g8" },
+      e1a1: { source: "e1", target: "c1" },
+      e8a8: { source: "e8", target: "c8" },
+    };
+  
+    if (chosenMove in castleMoves) {
+      const { source, target } = castleMoves[chosenMove];
+      onDrop(source, target);
+    } else {
+      const sourceSquare = chosenMove.slice(0, 2);
+      const targetSquare = chosenMove.slice(2);
+      onDrop(sourceSquare, targetSquare);
     }
-    if (chosenMove === "e8h8") {
-      onDrop("e8", "g8");
-    }
-    if (chosenMove === "e1a1") {
-      onDrop("e1", "c1");
-    }
-    if (chosenMove === "e8a8") {
-      onDrop("e8", "c8");
-    }
-    onDrop(chosenMove.slice(0, 2), chosenMove.slice(2));
   }
+  
 
   function displayAddOpening() {
     if (game.pgn()) {
@@ -390,47 +371,42 @@ const PlayBoard = ({ player }) => {
 
   function handleThemeChange(event) {
     const theme = event.target.value;
-    setTheme(theme);
-    if (theme === "blue") {
-      setColorTheme({
+    const themes = {
+      blue: {
         light: { backgroundColor: "rgb(217, 227, 242)" },
         dark: { backgroundColor: "rgb(141, 171, 215)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-      });
-      setSound("");
-    }
-    if (theme === "classic") {
-      setColorTheme({
+        sound: "",
+      },
+      classic: {
         light: { backgroundColor: "rgb(240, 217, 181)" },
         dark: { backgroundColor: "rgb(181, 136, 99)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(249, 249, 249)" },
-      });
-      setSound("");
-    }
-    if (theme === "rose") {
-      setColorTheme({
+        sound: "",
+      },
+      rose: {
         light: { backgroundColor: "rgb(235, 224, 224)" },
         dark: { backgroundColor: "rgb(148, 107, 107)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
-      });
-      setSound("/assets/sounds/wood.mp3");
-    }
-    if (theme === "mint") {
-      setColorTheme({
+        sound: "./sounds/wood.mp3",
+      },
+      mint: {
         light: { backgroundColor: "rgb(223, 243, 216)" },
         dark: { backgroundColor: "rgb(215, 180, 228)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
-      });
-      setSound("/assets/sounds/glass.mp3");
-    }
-    if (theme === "neon") {
-      setColorTheme({
-        light: { backgroundColor: "rgb(49, 191, 236)" },
+        sound: "./sounds/glass.mp3",
+      },
+      neon: {
+        light: { backgroundColor: "rgb(220, 242, 132)" },
         dark: { backgroundColor: "rgb(230, 74, 196)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(220, 242, 132)" },
-      });
-      setSound("/assets/sounds/space.mp3");
-    }
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(49, 191, 236)" },
+        sound: "./sounds/space.mp3",
+      },
+    };
+  
+    setColorTheme(themes[theme]);
+    setSound(themes[theme].sound);
+    setTheme(theme);
   };
 
 

@@ -11,6 +11,8 @@ import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
+import Box from "@mui/material/Box";
+
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
 const baseUrl = "http://localhost:8080/players";
@@ -37,6 +39,7 @@ const StudyBoard = ({ player }) => {
     dark: { backgroundColor: "rgb(141, 171, 215)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
+  const [theme, setTheme] = useState("blue");
   const [sound, setSound] = useState("");
   const moveSound = useMemo(() => new Audio(sound), [sound]);
   const [selectedSquare, setSelectedSquare] = useState('');
@@ -81,22 +84,20 @@ const StudyBoard = ({ player }) => {
   const getCustomOpenings = useCallback((playerId) => {
     getCustomOpeningsAsync(playerId)
       .then((response) => {
-        const openingList = [];
-        for (const opening of response) {
-          openingList.push({
-            id: opening.id,
-            name: opening.name,
-            pgn: opening.pgn,
-            parentId: null,
-            hasChild: false,
-          });
-          setCustomOpenings(openingList);
-        }
+        const openingList = response.map((opening) => ({
+          id: opening.id,
+          name: opening.name,
+          pgn: opening.pgn,
+          parentId: null,
+          hasChild: false,
+        }));
+        setCustomOpenings(openingList);
       })
       .catch((err) => {
         console.log(err);
       });
   }, []);
+  
 
   useEffect(() => {
     getOpenings("");
@@ -115,6 +116,7 @@ const StudyBoard = ({ player }) => {
         setCustomOpenings(updatedOpenings);
         setTotalReset(true);
         handleReset();
+        // Update backend
         return response.data;
       })
       .catch((err) => {
@@ -145,20 +147,13 @@ const StudyBoard = ({ player }) => {
 
   // Handles CPU making the correct opening moves
   useEffect(() => {
-    if (
-      orientation === "white" &&
-      game.turn() === "b" &&
-      moveCount < selectedOpeningMoves.length
-    ) {
-      cpu_moves();
-    } else if (
-      orientation === "black" &&
-      game.turn() === "w" &&
-      moveCount < selectedOpeningMoves.length
-    ) {
+    const isCPUTurn = (orientation === "white" && game.turn() === "b") || (orientation === "black" && game.turn() === "w");
+  
+    if (isCPUTurn && moveCount < selectedOpeningMoves.length) {
       cpu_moves();
     }
   }, [moveCount, game, orientation, selectedOpeningMoves, cpu_moves]);
+  
 
   function onDrop(sourceSquare, targetSquare) {
     if (selectedOpeningMoves.length === 0) {
@@ -205,6 +200,7 @@ const StudyBoard = ({ player }) => {
       setMoveCount(moveCount + 1);
     }
   }
+  
 
   // when user clicks on a piece 
   function onSquareClick(square) {
@@ -276,6 +272,7 @@ const StudyBoard = ({ player }) => {
       setCustomSelected(false);
     }
   }
+
   function handleUndo() {
     setMessage("");
     const gameCopy = { ...game };
@@ -299,72 +296,62 @@ const StudyBoard = ({ player }) => {
     const openingId = parseInt(event.target.value);
     const updatedIdHistory = [...idHistory, openingId];
     setIdHistory(updatedIdHistory);
-
-    // find selected opening
-    let opening = "";
-    const historyCopy = { ...openingHistory };
-    for (let i = 0; i < openings.length; i++) {
-      if (openings[i].id === openingId) {
-        opening = openings[i];
-        setHasChild(opening.hasChild);
-        setOpeningName(opening.name);
-        historyCopy[openingId] = {
-          hasChild: opening.hasChild,
-          name: opening.name,
-          pgn: opening.pgn,
-        };
-      }
+  
+    // Find the selected opening
+    const selectedOpening = openings.find((opening) => opening.id === openingId);
+    if (selectedOpening) {
+      setHasChild(selectedOpening.hasChild);
+      setOpeningName(selectedOpening.name);
+  
+      const historyCopy = { ...openingHistory };
+      historyCopy[openingId] = {
+        hasChild: selectedOpening.hasChild,
+        name: selectedOpening.name,
+        pgn: selectedOpening.pgn,
+        moves: [],
+      };
+      setOpeningHistory(historyCopy);
+  
+      // Transform PGN to list of moves
+      const openingMoves = selectedOpening.pgn.split(" ").filter((_, index) => index % 3 !== 0);
+      setSelectedOpeningMoves(openingMoves);
+      historyCopy[openingId].moves = openingMoves;
     }
-    // transform pgn to list of moves
-    let openingMoves = [];
-    opening = opening.pgn.split(" ");
-    for (let i = 0; i < opening.length; i++) {
-      if (i % 3 !== 0) {
-        openingMoves.push(opening[i]);
-      }
-    }
-    setSelectedOpeningMoves(openingMoves);
-    historyCopy[openingId].moves = openingMoves;
-    setOpeningHistory(historyCopy);
+  
     getOpenings(openingId);
   };
+  
 
   const handleCustomOpeningChange = (event) => {
     setTotalReset(false);
     handleReset();
     setTotalReset(true);
     setCustomSelected(true);
+  
     const openingId = parseInt(event.target.value);
     setSelectedCustomId(openingId);
-
-    // find selected opening
-    let opening = "";
-    for (let i = 0; i < customOpenings.length; i++) {
-      if (customOpenings[i].id === openingId) {
-        opening = customOpenings[i];
-        setHasChild(opening.hasChild);
-        setOpeningName(opening.name);
-      }
+  
+    // Find the selected custom opening
+    const selectedOpening = customOpenings.find((opening) => opening.id === openingId);
+    if (selectedOpening) {
+      setHasChild(selectedOpening.hasChild);
+      setOpeningName(selectedOpening.name);
+  
+      // Transform PGN to list of moves
+      const openingMoves = selectedOpening.pgn.split(" ").filter((_, index) => index % 3 !== 0);
+      setSelectedOpeningMoves(openingMoves);
     }
-    // transform pgn to list of moves
-    let openingMoves = [];
-    opening = opening.pgn.split(" ");
-    for (let i = 0; i < opening.length; i++) {
-      if (i % 3 !== 0) {
-        openingMoves.push(opening[i]);
-      }
-    }
-    setSelectedOpeningMoves(openingMoves);
   };
+  
 
   function displayDeleteOpening() {
     if (customSelected) {
       return (
-        <p>
+        <Typography variant="body1">
           <Button size="large" onClick={deleteCustomOpening}>
-            Delte from repertoire
+            Delete from repertoire
           </Button>
-        </p>
+        </Typography>
       );
     }
   }
@@ -372,22 +359,23 @@ const StudyBoard = ({ player }) => {
   function handleView() {
     if (selectedOpeningMoves.length > 0 && moveCount < selectedOpeningMoves.length) {
       return (
-        <section>
+        <Box mt={1}>
           <Button
-            sx={{ ml: 1 }}
-            size="large"
+            sx={{ ml: 2 }}
+            size="small"
             onClick={() => {
               setIsShown((current) => !current);
             }}
           >
-            {!isShown && <section>view next move</section>}
-            {isShown && <section>hide next move</section>}
+            {!isShown && (
+              <Typography variant="body1">View next move</Typography>
+            )}
+            {isShown && <Typography variant="body1">Hide next move</Typography>}
           </Button>
-        </section>
+        </Box>
       );
-    }
-    else {
-      return(<section></section>);
+    } else {
+      return <Box mt={1}></Box>;
     }
   }
 
@@ -417,81 +405,82 @@ const StudyBoard = ({ player }) => {
     if (selectedOpeningMoves.length > 0 && !customSelected) {
       const previousId = idHistory[idHistory.length - 2];
       const currentId = idHistory[idHistory.length - 1];
+  
+      const handlePreviousOpenings = () => {
+        if (previousId) {
+          getOpenings(previousId);
+          setOpeningName(openingHistory[previousId].name);
+          setSelectedOpeningMoves(openingHistory[previousId].moves);
+          setHasChild(openingHistory[previousId].hasChild);
+        } else {
+          getOpenings("");
+          setOpeningName("");
+          setSelectedOpeningMoves("");
+        }
+        // remove opening from history
+        const idHistoryCopy = [...idHistory];
+        idHistoryCopy.pop();
+        setIdHistory(idHistoryCopy);
+        const historyCopy = { ...openingHistory };
+        delete historyCopy[currentId];
+        setOpeningHistory(historyCopy);
+        handleUndo();
+      };
+  
       return (
-        <section>
+        <Box mt={2}>
           <Button
             size="large"
-            sx={{ ml: 1, mt: 2 }}
-            onClick={() => {
-              if (previousId) {
-                getOpenings(previousId);
-                setOpeningName(openingHistory[previousId].name);
-                setSelectedOpeningMoves(openingHistory[previousId].moves);
-                setHasChild(openingHistory[previousId].hasChild);
-              } else {
-                getOpenings("");
-                setOpeningName("");
-                setSelectedOpeningMoves("");
-              }
-              // remove opening from history
-              const idHistoryCopy = [...idHistory];
-              idHistoryCopy.pop();
-              setIdHistory(idHistoryCopy);
-              const historyCopy = { ...openingHistory };
-              delete historyCopy[currentId];
-              setOpeningHistory(historyCopy);
-              handleUndo();
-            }}
+            sx={{ ml: .25 }}
+            onClick={handlePreviousOpenings}
           >
-            previous openings
+            Previous Openings
           </Button>
-        </section>
+        </Box>
       );
     }
   }
 
   function handleThemeChange(event) {
     const theme = event.target.value;
-    if (theme === "blue") {
-      setColorTheme({
+    const themes = {
+      blue: {
         light: { backgroundColor: "rgb(217, 227, 242)" },
         dark: { backgroundColor: "rgb(141, 171, 215)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-      });
-      setSound("");
-    }
-    if (theme === "classic") {
-      setColorTheme({
+        sound: "",
+      },
+      classic: {
         light: { backgroundColor: "rgb(240, 217, 181)" },
         dark: { backgroundColor: "rgb(181, 136, 99)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(249, 249, 249)" },
-      });
-    }
-    if (theme === "rose") {
-      setColorTheme({
+        sound: "",
+      },
+      rose: {
         light: { backgroundColor: "rgb(235, 224, 224)" },
         dark: { backgroundColor: "rgb(148, 107, 107)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
-      });
-      setSound("./sounds/wood.mp3");
-    }
-    if (theme === "mint") {
-      setColorTheme({
+        sound: "./sounds/wood.mp3",
+      },
+      mint: {
         light: { backgroundColor: "rgb(223, 243, 216)" },
         dark: { backgroundColor: "rgb(215, 180, 228)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
-      });
-      setSound("./sounds/glass.mp3");
-    }
-    if (theme === "neon") {
-      setColorTheme({
+        sound: "./sounds/glass.mp3",
+      },
+      neon: {
         light: { backgroundColor: "rgb(220, 242, 132)" },
         dark: { backgroundColor: "rgb(230, 74, 196)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(49, 191, 236)" },
-      });
-      setSound("./sounds/space.mp3");
-    }
+        sound: "./sounds/space.mp3",
+      },
+    };
+  
+    setColorTheme(themes[theme]);
+    setTheme(theme);
+    setSound(themes[theme].sound);
   }
+  
 
   return (
     <Grid container>
@@ -511,13 +500,9 @@ const StudyBoard = ({ player }) => {
           customDropSquareStyle={colorTheme.drop}
           customSquareStyles={hint}
         />
-        <FormControl
-          sx={{ mt: 1.5, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>colors</InputLabel>
-          <Select onChange={handleThemeChange} value="">
+        <FormControl sx={{ mt: 1.5, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>Colors</InputLabel>
+          <Select onChange={handleThemeChange} value={theme} label="colors">
             <MenuItem value="blue">Blue</MenuItem>
             <MenuItem value="classic">Classic</MenuItem>
             <MenuItem value="rose">Rose</MenuItem>
@@ -525,12 +510,8 @@ const StudyBoard = ({ player }) => {
             <MenuItem value="neon">Neon</MenuItem>
           </Select>
         </FormControl>
-        <FormControl
-          sx={{ mt: 1.5, ml: 2, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>openings</InputLabel>
+        <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>Openings</InputLabel>
           <Select onChange={handleOpeningChange} value="">
             {openings.map((opening) => (
               <MenuItem key={opening.id} value={opening.id}>
@@ -539,12 +520,8 @@ const StudyBoard = ({ player }) => {
             ))}
           </Select>
         </FormControl>
-        <FormControl
-          sx={{ mt: 1.5, ml: 2, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>repertoire</InputLabel>
+        <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
+          <InputLabel>Repertoire</InputLabel>
           <Select onChange={handleCustomOpeningChange} value="">
             {customOpenings.map((opening) => (
               <MenuItem key={opening.id} value={opening.id}>
@@ -565,29 +542,22 @@ const StudyBoard = ({ player }) => {
           aria-label="small button group"
           sx={{ ml: 2 }}
         >
-          <Button onClick={handleReset}>start over</Button>
+          <Button onClick={handleReset}>Start Over</Button>
           <Button onClick={handleUndo}>⇐</Button>
-          <Button onClick={handleFlip}>flip</Button>
+          <Button onClick={handleFlip}>Flip</Button>
         </ButtonGroup>
-
-        <section>{toggleOpenings()}</section>
-        <p></p>
+        <Grid item>{toggleOpenings()}</Grid>
+        <Box mb={2} />
         {handleView()}
-        <p></p>
-          <Grid
-            item
-            sx={{
-              maxWidth: 200,
-              padding: 0.5,
-              ml: 2,
-            }}
-          >
-            {game.pgn()}
-          </Grid>
-          <Grid item>{displayDeleteOpening()}</Grid>
+        <Box mb={2} />
+        <Grid item sx={{ maxWidth: 200, padding: 0.5, ml: 2 }}>
+          <Typography>{game.pgn()}</Typography>
+        </Grid>
+        <Grid item>{displayDeleteOpening()}</Grid>
       </Grid>
     </Grid>
   );
+  
 };
 
 export default StudyBoard;
