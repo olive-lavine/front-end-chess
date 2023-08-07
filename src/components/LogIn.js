@@ -29,6 +29,7 @@ export default function LogIn({ setPlayer }) {
           addPlayer(name);
         } else {
           setPlayer(player.data);
+          console.log(player.data)
         }
       })
       .catch((err) => {

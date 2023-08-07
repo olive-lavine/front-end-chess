@@ -24,7 +24,6 @@ const PlayBoard = ({ player }) => {
   const chessRef = useRef(new Chess());
   const moveSound = useRef(new Audio());
 
-
   const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
   const [message, setMessage] = useState("");
@@ -69,6 +68,7 @@ const PlayBoard = ({ player }) => {
         console.log(err);
       });
   }, []);
+  
   
   const getCloudEvalAsync = (fen) => {
     return axios
@@ -129,48 +129,48 @@ const PlayBoard = ({ player }) => {
         console.log(err);
         setCloudEval('?');
       });
-  }, []);
-  
+  },[]);
 
-  // keep track of move logic for openings
-  function moveLogic(sourceSquare, targetSquare) {
-    setMoveCount(moveCount + 1);
-    if (sound) {
-      moveSound.play();
-    }
-    getCloudEval(game.fen());
-  
-    const uciMove = `${sourceSquare}${targetSquare}`;
-    const updatedUci = uci ? `${uci},${uciMove}` : uciMove;
-    setUci(updatedUci);
-    getOpening(updatedUci);
-  }
-  
-  function onDrop(sourceSquare, targetSquare) {
-    setMessage("");
+  function handleMove(sourceSquare, targetSquare) {
     const gameCopy = { ...game };
     const move = gameCopy.move({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
     });
-    setGame(gameCopy);
   
     if (move) {
-      moveLogic(sourceSquare, targetSquare);
+      setMoveCount((prevMoveCount) => prevMoveCount + 1);
+      if (sound) {
+        moveSound.play();
+      }
+      getCloudEval(game.fen());
+    
+      const uciMove = `${sourceSquare}${targetSquare}`;
+      const updatedUci = uci ? `${uci},${uciMove}` : uciMove;
+      setUci(updatedUci);
+      getOpening(updatedUci);
     }
   
-    if (game.in_checkmate()) {
-      setMessage("checkmate");
-    } else if (game.in_check()) {
-      setMessage("check");
+    setGame(gameCopy);
+  
+    if (gameCopy.in_checkmate()) {
+      setMessage("Checkmate");
+    } else if (gameCopy.in_check()) {
+      setMessage("Check");
+    } else {
+      setMessage("");
     }
   
     setSelectedSquare("");
     setOptionSquares({});
-  }  
+  }
 
-  // when user clicks on a piece
+  function onDrop(sourceSquare, targetSquare) {
+    setMessage("");
+    handleMove(sourceSquare, targetSquare);
+  }
+  
   function onSquareClick(square) {
     if (game.get(square) && !selectedSquare) {
       setSelectedSquare(square);
@@ -178,35 +178,11 @@ const PlayBoard = ({ player }) => {
       return;
     }
   
-    const gameCopy = { ...game };
-    const move = gameCopy.move({
-      from: selectedSquare,
-      to: square,
-      promotion: "q",
-    });
-    
-     // If illegal move, reset initial selected square
-    if (!move) {
-      setSelectedSquare(square);
-      getMoveOptions(square);
-      return;
-    }
-    
-    // Make move
-    setGame(gameCopy);
-    moveLogic(selectedSquare, square);
-    setMessage("");
+    if (!selectedSquare) return;
   
-    if (game.in_checkmate()) {
-      setMessage("checkmate");
-    } else if (game.in_check()) {
-      setMessage("check");
-    }
+    handleMove(selectedSquare, square);
+  }  
   
-    setSelectedSquare("");
-    setOptionSquares({});
-  }
-
   function onMouseOverSquare(square) {
     if (!selectedSquare) {
       getMoveOptions(square);
@@ -219,7 +195,6 @@ const PlayBoard = ({ player }) => {
     }
   }
   
-
   // Highlight move options for selected/hovered piece
   function getMoveOptions(square) {
     // Get valid moves
@@ -244,7 +219,6 @@ const PlayBoard = ({ player }) => {
   
     setOptionSquares(options);
   }
-  
 
   useEffect(() => {
     getOpening("");
@@ -263,23 +237,23 @@ const PlayBoard = ({ player }) => {
       </Button>
     ));
     return (
-      <section>
+      <Box>
         <Button
           size="large"
           onClick={() => {
             setIsShown((current) => !current);
           }}
         >
-          {!isShown && <section>view top moves</section>}
-          {isShown && <section>hide top moves</section>}
+          {!isShown && <Typography variant="body1">view top moves</Typography>}
+          {isShown && <Typography variant="body1">hide top moves</Typography>}
         </Button>
-        <p></p>
+        <Box mb={2} /> 
         {isShown && (
-          <ButtonGroup size="small"  aria-label="small button group">
+          <ButtonGroup size="small" aria-label="small button group">
             {moves}
           </ButtonGroup>
         )}
-      </section>
+      </Box>
     );
   }
 
@@ -438,14 +412,15 @@ const PlayBoard = ({ player }) => {
 
 
   return (
-    <Grid container spacing={2}>
+    <Grid container >
       <Grid item xs={12} sm={6} >
         <Toolbar sx={{ justifyContent: "center" }}>
           <Typography variant="h6">{opening}</Typography>
         </Toolbar>
       </Grid>
-      <Grid item xs={10} sm={8} >
-        <Box sx ={{maxHeight:'500px'}}>
+      <Grid item xs={12} sm={8} md={8} xl={10}>
+          <Typography variant="h8" >{message}</Typography>
+        <Box>
           <Chessboard
             position={game.fen()}
             onPieceDrop={onDrop}
@@ -458,8 +433,7 @@ const PlayBoard = ({ player }) => {
             customDropSquareStyle={colorTheme.drop}
             customSquareStyles={optionSquares}
           />
-          </Box>
-        <Typography className="message"> {message}</Typography>
+        </Box>
       </Grid>
       <Grid item >
         <Box
@@ -478,7 +452,6 @@ const PlayBoard = ({ player }) => {
         <ButtonGroup
           variant="outlined"
           orientation="vertical"
-          s
           size="large"
           aria-label="small button group"
         >
@@ -523,7 +496,7 @@ const PlayBoard = ({ player }) => {
           margin="dense"
         >
           <InputLabel>colors</InputLabel>
-          <Select onChange={handleThemeChange} value={theme} label="colors">
+          <Select onChange={handleThemeChange} value={theme} label="Colors">
             <MenuItem value="blue">Blue</MenuItem>
             <MenuItem value="classic">Classic</MenuItem>
             <MenuItem value="rose">Rose</MenuItem>
