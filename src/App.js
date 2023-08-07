@@ -8,14 +8,17 @@ import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import "./App.css";
+import SignUp from "./components/SignUp";
 
 export default function App() {
   const [selectedPage, setSelectedPage] = useState("Home");
-  const [player, setPlayer] = useState(false);
+  const [player, setPlayer] = useState("");
 
   const getSelectedPage = () => {
     if (selectedPage === "Home") {
@@ -38,30 +41,29 @@ export default function App() {
   };
 
   return (
-    <Container
-      sx={{
-        backgroundColor: "rgb(232, 229, 222)",
-        minWidth: "100%",
-        height: "100vh",
-      }}
+    <Container 
+      // sx={{
+      //   backgroundColor: "rgb(232, 229, 222)",
+      //   width: "100vh",
+      //   height: "100vh",
+      // }}
     >
-      {!player && <LogIn setPlayer={setPlayer} />}
+      {!player && <SignUp setPlayer={setPlayer} />}
       {player && (
-        <>
+        <Grid item>
           <AppBar
             sx={{
               boxShadow: "none",
               backgroundColor: "rgb(232, 229, 222)",
-              // color: "#173A5E",
             }}
           >
-            <Toolbar sx={{ backgroundColor: "rgb(232, 229, 222)" }}>
+            <Toolbar >
               <Typography
                 fontFamily="serif"
                 variant="h5"
-                component="div"
-                flexGrow={1}
-                display={{ xs: "none", sm: "block" }}
+                // component="div"
+                flexGrow="1"
+                display={{ xs: "none", md: "block" }}
               >
                 <Button
                   style={{
@@ -106,10 +108,10 @@ export default function App() {
               </Button>
             </Toolbar>
           </AppBar>
-          <Box p={5} pt={17}>
+          <Grid container pt={17}>
             {getSelectedPage()}
-          </Box>
-        </>
+          </Grid>
+          </Grid>
       )}
     </Container>
   );
