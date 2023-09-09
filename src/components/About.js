@@ -4,45 +4,34 @@ import Link from "@mui/material/Link";
 
 function About() {
   return (
-    <Grid>
-      <p></p>
-      <Typography
+    <Grid container pt={17}>
+      <Typography color="primary"
         style={{
-          fontSize: "2em",
+          fontSize: "3em",
           fontFamily: "Evangelina",
-          textTransform: "none",
-          color: "rgb(52, 108, 140)",
         }}
       >
         PLAY
       </Typography>
-      <p></p>
       <Typography variant="h6">
         Play chess! Explore top moves in the opening theorized and played by
         professionals. Save openings that you want to study in your repertoire.
       </Typography>
-      <p></p>
-      <Typography
+      <Typography color="primary"
         style={{
-          fontSize: "2em",
+          fontSize: "3em",
           fontFamily: "Evangelina",
-          textTransform: "none",
-          color: "rgb(52, 108, 140)",
         }}
       >
         PRACTICE
       </Typography>
-      <p></p>
       <Typography variant="h6">
-        Practice beginner openings, or more advanced lines in your repertoire.
+        Practice, learn, and memorize beginner openings, or more advanced lines in your repertoire.
       </Typography>
-      <p></p>
-      <Typography
+      <Typography color="primary"
         style={{
-          fontSize: "2em",
+          fontSize: "3em",
           fontFamily: "Evangelina",
-          textTransform: "none",
-          color: "rgb(52, 108, 140)",
         }}
       >
         THANKS
@@ -72,7 +61,6 @@ function About() {
         </Link>{" "}
         for the openings database!
       </Typography>
-      <section></section>
     </Grid>
   );
 }

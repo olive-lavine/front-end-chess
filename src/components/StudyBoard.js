@@ -12,13 +12,16 @@ import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Box from "@mui/material/Box";
+import { useAuth } from "../contexts/AuthContext"
 
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
 const baseUrl = "http://localhost:8080/players";
 
-const StudyBoard = ({ player }) => {
+const StudyBoard = () => {
   const chessRef = useRef(new Chess());
+
+  const { currentUser } = useAuth()
 
   const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
@@ -35,8 +38,8 @@ const StudyBoard = ({ player }) => {
   const [openingHistory, setOpeningHistory] = useState({});
   const [customSelected, setCustomSelected] = useState(false);
   const [colorTheme, setColorTheme] = useState({
-    light: { backgroundColor: "rgb(217, 227, 242)" },
-    dark: { backgroundColor: "rgb(141, 171, 215)" },
+    light: { backgroundColor: "rgb(235, 234, 232)" },
+    dark: { backgroundColor: "rgb(125, 172, 189)" },
     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
   });
   const [theme, setTheme] = useState("blue");
@@ -104,12 +107,12 @@ const StudyBoard = ({ player }) => {
   }, [getOpenings]);
 
   useEffect(() => {
-    getCustomOpenings(player.player_id);
-  }, [getCustomOpenings, player.player_id]);
+    getCustomOpenings(currentUser.uid);
+  }, [getCustomOpenings, currentUser.uid]);
 
   function deleteCustomOpening() {
     return axios
-      .delete(`${baseUrl}/${player.player_id}/custom/${selectedCustomId}`)
+      .delete(`${baseUrl}/custom/${selectedCustomId}`)
       .then((response) => {
         // Update the frontend state to remove the deleted custom opening
         const updatedOpenings = customOpenings.filter((opening) => opening.id !== selectedCustomId);
@@ -347,11 +350,12 @@ const StudyBoard = ({ player }) => {
   function displayDeleteOpening() {
     if (customSelected) {
       return (
-        <Typography variant="body1">
-          <Button size="large" onClick={deleteCustomOpening}>
-            Delete from repertoire
+        <Box>
+          <Button sx={{ ml: 2 }} size="small" onClick={deleteCustomOpening}>
+            <Typography variant="body1">Delete opening</Typography>
           </Button>
-        </Typography>
+        </Box>
+        
       );
     }
   }
@@ -388,8 +392,8 @@ const StudyBoard = ({ player }) => {
       if (move) {
         if ((orientation === 'white' && moveCount % 2 === 0) || (orientation === 'black' && moveCount % 2 !== 0)) {
             const hints = {
-              [move.from]: { backgroundColor: "rgb(254, 254, 205)", boxShadow: "inset 0 0 1px 4px rgb(254, 254, 77)" },
-              [move.to]: { backgroundColor: "rgb(254, 254, 205)", boxShadow: "inset 0 0 1px 4px rgb(254, 254, 77)" },
+              [move.from]: { backgroundColor: "rgb(250, 238, 220)", boxShadow: "inset 0 0 1px 4px rgb(245, 213, 164)" },
+              [move.to]: { backgroundColor: "rgb(250, 238, 220)", boxShadow: "inset 0 0 1px 4px rgb(245, 213, 164)" },
             };
             setHint(hints);
           }
@@ -445,45 +449,32 @@ const StudyBoard = ({ player }) => {
     const theme = event.target.value;
     const themes = {
       blue: {
-        light: { backgroundColor: "rgb(217, 227, 242)" },
-        dark: { backgroundColor: "rgb(141, 171, 215)" },
+        light: { backgroundColor: "rgb(235, 234, 232)" },
+        dark: { backgroundColor: "rgb(125, 172, 189)" },
         drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
         sound: "",
       },
       classic: {
         light: { backgroundColor: "rgb(240, 217, 181)" },
         dark: { backgroundColor: "rgb(181, 136, 99)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(249, 249, 249)" },
-        sound: "",
-      },
-      rose: {
-        light: { backgroundColor: "rgb(235, 224, 224)" },
-        dark: { backgroundColor: "rgb(148, 107, 107)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(121, 160, 103)" },
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(239,239,239)" },
         sound: "./sounds/wood.mp3",
       },
-      mint: {
-        light: { backgroundColor: "rgb(223, 243, 216)" },
-        dark: { backgroundColor: "rgb(215, 180, 228)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(224, 170, 190)" },
+      green: {
+        light: { backgroundColor: "rgb(238,238,210)" },
+        dark: { backgroundColor: "rgb(118,150,86)"},
+        drop: { boxShadow: "inset 0 0 1px 4px rgb(214, 214, 165)" },
         sound: "./sounds/glass.mp3",
-      },
-      neon: {
-        light: { backgroundColor: "rgb(220, 242, 132)" },
-        dark: { backgroundColor: "rgb(230, 74, 196)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(49, 191, 236)" },
-        sound: "./sounds/space.mp3",
-      },
+      }
     };
   
     setColorTheme(themes[theme]);
     setTheme(theme);
     setSound(themes[theme].sound);
   }
-  
 
   return (
-    <Grid container>
+    <Grid container pt={17}>
       <Grid item xs={6}>
         <Toolbar sx={{ justifyContent: "center" }}>
           <Typography variant="h6">{openingName}</Typography>
@@ -505,14 +496,12 @@ const StudyBoard = ({ player }) => {
           <Select onChange={handleThemeChange} value={theme} label="colors">
             <MenuItem value="blue">Blue</MenuItem>
             <MenuItem value="classic">Classic</MenuItem>
-            <MenuItem value="rose">Rose</MenuItem>
-            <MenuItem value="mint">Mint</MenuItem>
-            <MenuItem value="neon">Neon</MenuItem>
+            <MenuItem value="green">Green</MenuItem>
           </Select>
         </FormControl>
         <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
           <InputLabel>Openings</InputLabel>
-          <Select onChange={handleOpeningChange} value="">
+          <Select onChange={handleOpeningChange} value="" label="openings">
             {openings.map((opening) => (
               <MenuItem key={opening.id} value={opening.id}>
                 {opening.name}
@@ -522,7 +511,7 @@ const StudyBoard = ({ player }) => {
         </FormControl>
         <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
           <InputLabel>Repertoire</InputLabel>
-          <Select onChange={handleCustomOpeningChange} value="">
+          <Select onChange={handleCustomOpeningChange} label="repertoire">
             {customOpenings.map((opening) => (
               <MenuItem key={opening.id} value={opening.id}>
                 {opening.name}
@@ -536,13 +525,14 @@ const StudyBoard = ({ player }) => {
       </Grid>
       <Grid item>
         <ButtonGroup
+          color="primary"
           variant="outlined"
           orientation="vertical"
           size="large"
           aria-label="small button group"
           sx={{ ml: 2 }}
         >
-          <Button onClick={handleReset}>Start Over</Button>
+          <Button onClick={handleReset} >Start Over</Button>
           <Button onClick={handleUndo}>⇐</Button>
           <Button onClick={handleFlip}>Flip</Button>
         </ButtonGroup>
