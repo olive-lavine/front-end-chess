@@ -13,6 +13,8 @@ import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Box from "@mui/material/Box";
 import { useAuth } from "../contexts/AuthContext"
+import { useSettingsContext } from '../contexts/SettingsContext';
+
 
 
 const kBaseUrl = "http://localhost:8080/openings/parent";
@@ -22,6 +24,7 @@ const StudyBoard = () => {
   const chessRef = useRef(new Chess());
 
   const { currentUser } = useAuth()
+  const { colorTheme, sound, } = useSettingsContext();
 
   const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
@@ -37,13 +40,6 @@ const StudyBoard = () => {
   const [selectedCustomId, setSelectedCustomId] = useState("");
   const [openingHistory, setOpeningHistory] = useState({});
   const [customSelected, setCustomSelected] = useState(false);
-  const [colorTheme, setColorTheme] = useState({
-    light: { backgroundColor: "rgb(235, 234, 232)" },
-    dark: { backgroundColor: "rgb(125, 172, 189)" },
-    drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-  });
-  const [theme, setTheme] = useState("blue");
-  const [sound, setSound] = useState("");
   const moveSound = useMemo(() => new Audio(sound), [sound]);
   const [selectedSquare, setSelectedSquare] = useState('');
   const [hint, setHint] = useState({});
@@ -445,34 +441,6 @@ const StudyBoard = () => {
     }
   }
 
-  function handleThemeChange(event) {
-    const theme = event.target.value;
-    const themes = {
-      blue: {
-        light: { backgroundColor: "rgb(235, 234, 232)" },
-        dark: { backgroundColor: "rgb(125, 172, 189)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-        sound: "",
-      },
-      classic: {
-        light: { backgroundColor: "rgb(240, 217, 181)" },
-        dark: { backgroundColor: "rgb(181, 136, 99)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(239,239,239)" },
-        sound: "./sounds/wood.mp3",
-      },
-      green: {
-        light: { backgroundColor: "rgb(238,238,210)" },
-        dark: { backgroundColor: "rgb(118,150,86)"},
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(214, 214, 165)" },
-        sound: "./sounds/glass.mp3",
-      }
-    };
-  
-    setColorTheme(themes[theme]);
-    setTheme(theme);
-    setSound(themes[theme].sound);
-  }
-
   return (
     <Grid container pt={17}>
       <Grid item xs={6}>
@@ -492,14 +460,6 @@ const StudyBoard = () => {
           customSquareStyles={hint}
         />
         <FormControl sx={{ mt: 1.5, minWidth: 120 }} size="small" margin="dense">
-          <InputLabel>Colors</InputLabel>
-          <Select onChange={handleThemeChange} value={theme} label="colors">
-            <MenuItem value="blue">Blue</MenuItem>
-            <MenuItem value="classic">Classic</MenuItem>
-            <MenuItem value="green">Green</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
           <InputLabel>Openings</InputLabel>
           <Select onChange={handleOpeningChange} value="" label="openings">
             {openings.map((opening) => (

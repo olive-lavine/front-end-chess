@@ -23,10 +23,10 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 
 export default function App() {
-  const { logout } = useAuth()
+  const { currentUser, logout } = useAuth()
   const [error, setError] = useState("")
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
+  
 
   async function handleLogout() {
     setError("")
@@ -117,7 +117,7 @@ export default function App() {
           <Route path="/login" element={<LogIn />} />
           <Route exact path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path="settings" element={<Settings/>} />
           <Route path="play" element={<PlayBoard />} />
           <Route path="/study" element={<PrivateRoute element={<StudyBoard/>} />} />
         </Routes>
@@ -127,9 +127,9 @@ export default function App() {
                 <SettingsOutlinedIcon></SettingsOutlinedIcon>
           </IconButton>
           {error && <Alert severity="error">{error}</Alert>}
-          <IconButton color="primary" onClick={handleLogout}>
+          {currentUser && <IconButton color="primary" onClick={handleLogout}>
             <LockOutlinedIcon/>
-          </IconButton>
+          </IconButton>}
         </Toolbar>
       </AppBar>
       </Container>

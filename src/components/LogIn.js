@@ -22,17 +22,6 @@ export default function LogIn() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
-  async function getPlayer(uid) {
-    try {
-      const response = await axios.get(`http://localhost:8080/players/?id=${uid}`);
-      const playerData = response.data;
-      return playerData;
-    } catch (error) {
-      console.error(`Failed to fetch player data: ${error.message}`);
-      throw new Error("Failed to fetch player data. Please try again later.");
-    }
-  }
   
   async function handleSubmit(e) {
     e.preventDefault();
@@ -83,7 +72,6 @@ export default function LogIn() {
             </Button>
           </FormControl>
           Need an account? <Link to="/signup">Sign up</Link>
-
         </Box>
     </Grid>
   );

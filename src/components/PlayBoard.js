@@ -1,5 +1,6 @@
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
+
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Chess } from "chess.js";
 import Button from "@mui/material/Button";
@@ -16,10 +17,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import Box from '@mui/material/Box';
-import AppBar from "@mui/material/AppBar";
-import { Link } from "react-router-dom"
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useAuth } from "../contexts/AuthContext"
+import { useSettingsContext } from '../contexts/SettingsContext';
+
 
 
 
@@ -28,9 +28,11 @@ const baseUrl = "http://localhost:8080/players/";
 
 const PlayBoard = () => {
   const chessRef = useRef(new Chess());
-  const moveSound = useRef(new Audio());
+
 
   const { currentUser } = useAuth()
+  const { colorTheme, sound, } = useSettingsContext();
+  const moveSound = new Audio(sound);
 
   const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
@@ -40,13 +42,6 @@ const PlayBoard = () => {
   const [uci, setUci] = useState("");
   const [isShown, setIsShown] = useState(false);
   const [moveCount, setMoveCount] = useState(0);
-  const [colorTheme, setColorTheme] = useState({
-    light: { backgroundColor: "rgb(235, 234, 232)" },
-    dark: { backgroundColor: "rgb(125, 172, 189)" },
-    drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-  });
-  const [sound, setSound] = useState("");
-  const [theme, setTheme] = useState("blue");
   const [selectedSquare, setSelectedSquare] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
   const [cloudEval, setCloudEval] = useState(0.0);
@@ -140,7 +135,8 @@ const PlayBoard = () => {
   },[]);
 
   function handleMove(sourceSquare, targetSquare) {
-    const gameCopy = { ...game };
+    const gameCopy =  {...game} 
+
     const move = gameCopy.move({
       from: sourceSquare,
       to: targetSquare,
@@ -352,69 +348,47 @@ const PlayBoard = () => {
     orientation === "white" ? setOrientation("black") : setOrientation("white");
   }
 
-  function handleThemeChange(event) {
-    const theme = event.target.value;
-    const themes = {
-      blue: {
-        light: { backgroundColor: "rgb(235, 234, 232)" },
-        dark: { backgroundColor: "rgb(125, 172, 189)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-        sound: "",
-      },
-      classic: {
-        light: { backgroundColor: "rgb(240, 217, 181)" },
-        dark: { backgroundColor: "rgb(181, 136, 99)" },
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(239,239,239)" },
-        sound: "./sounds/wood.mp3",
-      },
-      green: {
-        light: { backgroundColor: "rgb(238,238,210)" },
-        dark: { backgroundColor: "rgb(118,150,86)"},
-        drop: { boxShadow: "inset 0 0 1px 4px rgb(214, 214, 165)" },
-        sound: "./sounds/glass.mp3",
-      }
-    };
+  useEffect(() => {
+    if (error) {
+      const timerId = setTimeout(() => {
+        setError(false);
+      }, 3000); // 3000 milliseconds = 3 seconds (adjust as needed)
+
+      return () => {
+        clearTimeout(timerId); // Clear the timeout if the component unmounts or pgnInput changes
+      };
+    }
+  }, [error, pgnInput]);
+
+
+  const handleLoad = (event) => {
+    event.preventDefault();
+    const gameCopy = {...game};
+    const prevpgn = game.pgn();
+    const loadSuccess = gameCopy.load_pgn(pgnInput); // Attempt to load the PGN
   
-    setColorTheme(themes[theme]);
-    setTheme(theme);
-    setSound(themes[theme].sound);
-  }
-
-
-  const handleLoad = () => {
-    // Process the inputed text
-    try {
-      const gameCopy = { ...game };
-      console.log("BROKEN")
-      gameCopy.load_pgn(pgnInput);
+    if (!loadSuccess) {
+      setError(true); 
+      gameCopy.load_pgn(prevpgn);
+    } else {
       setGame(gameCopy);
       getCloudEval(game.fen());
-      const history = game.history({ verbose: true })
-      const uciMoves = history.map(move => move.from + move.to).join(',');
+      const history = game.history({ verbose: true });
+      const uciMoves = history.map((move) => move.from + move.to).join(',');
       setUci(uciMoves);
       getOpening(uciMoves);
-      setError(false);
-    } catch(e){
-      console.log(e)
-      setError(true);
-  
+      setError(false)
     }
+  
     // Reset the input field
     setpgnInput('');
   };
+  
 
   const handleInputChange = (event) => {
     setpgnInput(event.target.value);
     setError(false); 
   };
-
-  const muiTheme = createTheme({
-    palette: {
-      primary: {
-        main: 'rgb(52, 108, 140)',
-      },
-    },
-  });
 
 
   return (
@@ -478,38 +452,25 @@ const PlayBoard = () => {
           {game.pgn()}
           <Grid item>{currentUser && displayAddOpening()}</Grid>
         </Grid>
-        <Box >
         <TextField
           fullWidth
+          component="form"
+          onSubmit={handleLoad}
           color="primary"
           placeholder="Load PGN"
           value ={pgnInput}
           onChange={handleInputChange}
-          error={error}
           helperText={error ? 'Invalid Input' : ''}
           InputProps={{
             sx: { fontSize: 'default' },
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton edge="end" onClick={handleLoad}>
+                <IconButton edge="end"type="submit">
                   <AddBoxIcon/>
                 </IconButton>
               </InputAdornment>),
           }}
         />
-        </Box>
-        <FormControl
-          sx={{ mt: 1.5, minWidth: 120 }}
-          size="small"
-          margin="dense"
-        >
-          <InputLabel>colors</InputLabel>
-          <Select onChange={handleThemeChange} value={theme} label="Colors">
-            <MenuItem value="blue">Blue</MenuItem>
-            <MenuItem value="classic">Classic</MenuItem>
-            <MenuItem value="green">Green</MenuItem>
-          </Select>
-        </FormControl>
       </Grid>
     </Grid>
   );
