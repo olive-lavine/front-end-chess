@@ -13,12 +13,18 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import { Button, Typography, Alert, Icon } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';import LogoutSharpIcon from '@mui/icons-material/LogoutSharp';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import "./App.css";
 import SignUp from "./components/SignUp";
 import { useAuth } from "./contexts/AuthContext"
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+// import '@fontsource/roboto/300.css';
+// import '@fontsource/roboto/500.css'
+// import '@fontsource/roboto/400.css';
+// import '@fontsource/roboto/700.css';
+
 
 
 
@@ -38,6 +44,10 @@ export default function App() {
         setError("Failed to log out")
     }
 }
+
+  function handleLogin() {
+    navigate("/login")
+  }
   const commonButtonStyles = ({ theme }) => ({
     '&:hover': {
       color: theme.palette.primary.light,
@@ -129,6 +139,9 @@ export default function App() {
           {error && <Alert severity="error">{error}</Alert>}
           {currentUser && <IconButton color="primary" onClick={handleLogout}>
             <LockOutlinedIcon/>
+          </IconButton>}
+          {!currentUser && <IconButton color="primary" onClick={handleLogin}>
+            <LockOpenOutlinedIcon/>
           </IconButton>}
         </Toolbar>
       </AppBar>

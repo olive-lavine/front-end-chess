@@ -24,7 +24,7 @@ import { useSettingsContext } from '../contexts/SettingsContext';
 
 
 const kBaseUrl = "https://explorer.lichess.ovh/masters?play=";
-const baseUrl = "http://localhost:8080/players/";
+const baseUrl = `${process.env.REACT_APP_BASE_URL}players/`;
 
 const PlayBoard = () => {
   const chessRef = useRef(new Chess());
@@ -352,7 +352,7 @@ const PlayBoard = () => {
     if (error) {
       const timerId = setTimeout(() => {
         setError(false);
-      }, 3000); // 3000 milliseconds = 3 seconds (adjust as needed)
+      }, 3000); 
 
       return () => {
         clearTimeout(timerId); // Clear the timeout if the component unmounts or pgnInput changes

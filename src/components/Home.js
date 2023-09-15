@@ -18,9 +18,12 @@ function Home (){
                     alt="vintage chess pieces on blue background"
                 />
             {currentUser ? (
-            <Box align="center">
-                <Typography variant="h6" >
-                    Hi, {currentUser.displayName}!
+            <Box align="center" marginTop={1}>
+                <Typography style={{
+                fontSize: "3.5em",
+                fontFamily: "Evangelina",
+                }} >
+                    Hi, {currentUser.displayName && currentUser.displayName.charAt(0).toUpperCase() + currentUser.displayName.slice(1)}!
                 </Typography>
                 
             </Box>

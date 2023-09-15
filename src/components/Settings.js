@@ -5,19 +5,7 @@ import { useSettingsContext } from '../contexts/SettingsContext';
 
 
 function Settings() {
-    const { colorTheme, setColorTheme, theme, setTheme, sound, setSound, soundChoice, setSoundChoice } = useSettingsContext();
-
-    // const [colorTheme, setColorTheme] = useState({
-    //     light: { backgroundColor: "rgb(235, 234, 232)" },
-    //     dark: { backgroundColor: "rgb(125, 172, 189)" },
-    //     drop: { boxShadow: "inset 0 0 1px 4px rgb(218, 197, 165)" },
-    //     sound: "",
-    // }); 
-    // const [theme, setTheme] = useState('blue');
-    // const [sound, setSound] = useState('');
-    // const [soundChoice, setSoundChoice] = useState('none'); 
-
-
+    const { colorTheme, setColorTheme, theme, setTheme, setSound, soundChoice, setSoundChoice } = useSettingsContext();
 
     function handleThemeChange(event) {
         const theme = event.target.value;

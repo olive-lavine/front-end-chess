@@ -12,7 +12,8 @@ import CardMedia from "@mui/material/CardMedia";
 import { useAuth } from "../contexts/AuthContext"
 import { Link, useNavigate } from "react-router-dom"
 import { useState, useRef } from "react";
-import axios from "axios";
+import Stack from '@mui/material/Stack';
+
 
 
 export default function LogIn() {
@@ -48,31 +49,33 @@ export default function LogIn() {
           alt="vintage chess pieces on blue background"
         ></CardMedia>
       </Card>
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-      {error && <Alert variant="danger">{error}</Alert>}
-        <FormControl>
+      <Stack spacing={2}   justifyContent="center" alignItems="center">
+        <Box>{error && <Alert variant="danger">{error}</Alert>}</Box>
+      <Box component="form" onSubmit={handleSubmit} display="flex" alignItems="center" >
+        <FormControl sx={{ mt: 1}} >
           <InputLabel htmlFor="email-address">Email address</InputLabel>
               <Input
                 type="email"
                 inputRef = {emailRef}
                 required                                    
-                // placeholder="Email address"                                
             />
         </FormControl>
-          <FormControl>
+          <FormControl  sx={{ mt: 1}}>
             <InputLabel htmlFor="password">Password</InputLabel>
               <Input
                 type="password"
                 inputRef = {passwordRef}
                 required                                 
-                // placeholder="Password"              
             />
-            <Button type="submit"  disabled={loading}>
+          </FormControl>
+          <Button type="submit"  disabled={loading} size={"large"}  sx={{ mt: 2}} >
               Log in
             </Button>
-          </FormControl>
-          Need an account? <Link to="/signup">Sign up</Link>
         </Box>
+        <Box display="flex" alignItems="center">
+          Need an account? <Button component={Link} to="/signup">Sign up</Button>
+        </Box>
+        </Stack>
     </Grid>
   );
 }

@@ -1,70 +1,49 @@
-# Getting Started with Create React App
+# Opening Knight
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Introduction
 
-## Available Scripts
+Opening Knight is an application designed to help chess enthusiasts learn and memorize chess opening move sequences through effective repetition.
 
-In the project directory, you can run:
+## MVP Features
 
-### `npm start`
+- **User Authentication:**
+  - User Sign-up, Log-in, and Log-out functionality using Firebase for secure authentication.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Navigation Management:**
+  - Implemented React Router to streamline navigation within the app.
+  - Established secure protected routes to control access exclusively for authenticated users.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Chess Opening Database:**
+  - Leveraged the power of the Lichess Masters Database API to offer users the ability to:
+    - Explore beginner-friendly opening lines.
+    - Access advanced variations played by professional chess players since 1952.
 
-### `npm test`
+- **Opening Repertoire Practice:**
+  - Enable users to actively practice chess opening sequences from both sides of the board.
+  - Study, learn, and memorize opening moves through engaging repetition exercises.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Dependencies
 
-### `npm run build`
+- npm
+- React Router
+- React Chessboard
+- Chess.js
+- Firebase
+- Google's Material UI
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Environment Set-up
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone this repository.
+2. Install dependencies with:
+    ```
+    npm install
+    ```
+3. Configure REACT_APP_BASE_URL in .env to point to the Opening Knight backend API host.
+4. Start the application by running:
+    ```
+    npm run start
+    ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Author
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This mobile app is developed by [Olive Henzel Lavine](www.linkedin.com/in/olive-lavine) as a capstone project for [Ada Developers Academy](https://adadevelopersacademy.org/).

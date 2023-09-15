@@ -16,9 +16,10 @@ import { useAuth } from "../contexts/AuthContext"
 import { useSettingsContext } from '../contexts/SettingsContext';
 
 
+const baseUrl = `${process.env.REACT_APP_BASE_URL}players`;
+const kBaseUrl = `${process.env.REACT_APP_BASE_URL}openings/parent`;
 
-const kBaseUrl = "http://localhost:8080/openings/parent";
-const baseUrl = "http://localhost:8080/players";
+
 
 const StudyBoard = () => {
   const chessRef = useRef(new Chess());
@@ -44,6 +45,7 @@ const StudyBoard = () => {
   const [selectedSquare, setSelectedSquare] = useState('');
   const [hint, setHint] = useState({});
   const [totalReset, setTotalReset] = useState(true);
+  const [selectedValue, setSelectedValue] = useState('');
 
 
   const getOpeningsAsync = (parentId) => {
@@ -261,15 +263,15 @@ const StudyBoard = () => {
     setGame(gameCopy);
     setMoveCount(0);
     setMessage("");
-    setSelectedOpeningMoves([]);
-    setOpeningName("");
+    // setSelectedOpeningMoves([]);
+    // setOpeningName("");
     setHint({})
-    if(totalReset){
+    // if(totalReset){
       setOpeningHistory({});
       setIdHistory([]);
       getOpenings("");
       setCustomSelected(false);
-    }
+    // }
   }
 
   function handleUndo() {
@@ -326,6 +328,8 @@ const StudyBoard = () => {
     handleReset();
     setTotalReset(true);
     setCustomSelected(true);
+    setSelectedValue(event.target.value);
+
   
     const openingId = parseInt(event.target.value);
     setSelectedCustomId(openingId);
@@ -471,7 +475,7 @@ const StudyBoard = () => {
         </FormControl>
         <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
           <InputLabel>Repertoire</InputLabel>
-          <Select onChange={handleCustomOpeningChange} label="repertoire">
+          <Select value={selectedValue} onChange={handleCustomOpeningChange} label="repertoire">
             {customOpenings.map((opening) => (
               <MenuItem key={opening.id} value={opening.id}>
                 {opening.name}

@@ -3,10 +3,13 @@ import InputLabel from "@mui/material/InputLabel";
 import Input from "@mui/material/Input";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import CardMedia from "@mui/material/CardMedia";
 import Alert from '@mui/material/Alert';
 import Card from "@mui/material/Card";
+import Stack from '@mui/material/Stack';
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -57,11 +60,31 @@ export default function SignUp() {
     setLoading(false);
   }
 
+  useEffect(() => {
+    if (error) {
+      const timerId = setTimeout(() => {
+        setError(false);
+      }, 10000); 
+
+      return () => {
+        clearTimeout(timerId); // Clear the timeout if the component unmounts or pgnInput changes
+      };
+    }
+  }, [error]);
+
   return (
-    <Card sx={{minHeight: "50vh", maxWidth: "400px"}}>
-      <Box component="form" onSubmit={onSubmit} sx={{ mt: 1.5 }}>
-        {error && <Alert variant="danger">{error}</Alert>}
-        <FormControl>
+    <Grid item container justifyContent="center">
+      <Card sx={{ mt: 17 }}>
+        <CardMedia
+          component="img"
+          image="./assets/images/chess.jpg"
+          alt="vintage chess pieces on blue background"
+        ></CardMedia>
+      </Card>
+      <Stack spacing={2}   justifyContent="center" alignItems="center">
+        <Box>{error && <Alert variant="danger">{error}</Alert>}</Box>
+      <Box component="form" onSubmit={onSubmit} display="flex" alignItems="center">
+        <FormControl sx={{ mt: 1}} >
           <InputLabel htmlFor="email-address">Email address</InputLabel>
           <Input
             type="email"
@@ -72,7 +95,7 @@ export default function SignUp() {
             placeholder="Email address"
           />
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ mt: 1}} >
           <InputLabel htmlFor="user-name">Username</InputLabel>
           <Input
             type="text"
@@ -83,7 +106,7 @@ export default function SignUp() {
             placeholder="Username"
           />
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ mt: 1}} >
           <InputLabel htmlFor="password">Password</InputLabel>
           <Input
             type="password"
@@ -93,12 +116,15 @@ export default function SignUp() {
             required
             placeholder="Password"
           />
-          <Button type="submit" disabled={loading}>
+        </FormControl>
+        <Button type="submit" disabled={loading} sx={{ mt: 2}}>
             Sign Up
           </Button>
-        </FormControl>
       </Box>
-      Already have an account? <Link to="/login">Log In</Link>
-    </Card>
+      <Box display="flex" alignItems="center" >
+      Already have an account? <Button component={Link} to="/login">Log In</Button>
+      </Box>
+      </Stack>
+    </Grid>
   );
 }
