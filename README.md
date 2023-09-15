@@ -44,4 +44,4 @@ Opening Knight is an application designed to help chess enthusiasts explore and 
 
 ## Author
 
-This application was developed by [Olive Henzel Lavine](www.linkedin.com/in/olive-lavine) as a capstone project for [Ada Developers Academy](https://adadevelopersacademy.org/).
+This application was developed by [Olive Henzel Lavine](https://linkedin.com/in/olive-lavine) as a capstone project for [Ada Developers Academy](https://adadevelopersacademy.org/).
