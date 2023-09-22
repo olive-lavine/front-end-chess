@@ -55,11 +55,11 @@ function Settings() {
     }
 
     return (
-    <Grid container pt={18} >
+    <Grid container pt={18} justifyContent="center">
         <Card variant="outlined" sx={{ width: '300px' }}>
         <CardContent>
             <Box textAlign="center" mb={3}>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h5" >
                 Settings
             </Typography>
             </Box>

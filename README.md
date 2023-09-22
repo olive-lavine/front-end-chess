@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Opening Knight is an application designed to help chess enthusiasts explore and learn chess opening move sequences through effective repetition.
+Opening Knight is an application designed to help chess enthusiasts explore and learn opening move sequences through effective repetition.
 
 ## MVP Features
 
@@ -14,11 +14,10 @@ Opening Knight is an application designed to help chess enthusiasts explore and 
   - Established secure protected routes to control access exclusively for authenticated users.
 
 - **Chess Opening Database:**
-  - Leveraged the power of the Lichess Masters Database API to offer users the ability access opening variations theorized by professional chess players since 1952.
+  - Leveraged the power of the Lichess Masters Database API to offer users the ability to access opening variations theorized by professional chess players since 1952.
 
 - **Opening Repertoire Practice:**
   - Enable users to actively practice chess opening sequences from both sides of the board.
-  - Study, learn, and memorize opening moves through engaging repetition exercises.
 
 ## Dependencies
 

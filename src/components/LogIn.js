@@ -8,6 +8,9 @@ import Alert from '@mui/material/Alert';
 import Card from "@mui/material/Card";
 import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
+import InputAdornment from '@mui/material/InputAdornment';
+import VisibilityTwoToneIcon from '@mui/icons-material/VisibilityTwoTone';
+import VisibilityOffTwoToneIcon from '@mui/icons-material/VisibilityOffTwoTone';
 import CardMedia from "@mui/material/CardMedia";
 import { useAuth } from "../contexts/AuthContext"
 import { Link, useNavigate } from "react-router-dom"
@@ -21,6 +24,7 @@ export default function LogIn() {
   const passwordRef = useRef()
   const { login } = useAuth()
   const [error, setError] = useState("")
+  const [hidePassword, setHidePassword] = useState(true);
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   
@@ -39,7 +43,11 @@ export default function LogIn() {
       setLoading(false);
     }
   }
-  
+  function showPassword() {
+    setHidePassword(prevHidePassword => !prevHidePassword);
+    };
+
+
   return (
     <Grid item container justifyContent="center">
       <Card sx={{ mt: 17 }}>
@@ -63,11 +71,40 @@ export default function LogIn() {
           <FormControl  sx={{ mt: 1}}>
             <InputLabel htmlFor="password">Password</InputLabel>
               <Input
-                type="password"
+                type={hidePassword ? "password" : "input"}
                 inputRef = {passwordRef}
-                required                                 
+                required   
+                endAdornment={
+                  hidePassword ? (
+                    <Button disableRipple  // Disable the button ripple effect
+                    sx={{
+                      minWidth: 'unset',  // Remove the minimum width
+                      padding: '0px',  // Adjust padding as needed
+                      '&:hover': {
+                        backgroundColor: 'transparent', // Remove button background on hover
+                      },
+                      cursor: 'pointer',
+                    }}>
+                    <InputAdornment position="end">
+                      <VisibilityOffTwoToneIcon
+                        fontSize="default"
+                        onClick={showPassword}
+                      />
+                    </InputAdornment>
+                    </Button>
+                  ) : (
+                    
+                    <InputAdornment position="end">
+                      <VisibilityTwoToneIcon
+                        fontSize="default"
+                        onClick={showPassword}
+                      />
+                    </InputAdornment>
+                  
+                  )
+                }                              
             />
-          </FormControl>
+          </FormControl>      
           <Button type="submit"  disabled={loading} size={"large"}  sx={{ mt: 2}} >
               Log in
             </Button>
