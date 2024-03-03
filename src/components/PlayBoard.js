@@ -243,7 +243,6 @@ const PlayBoard = () => {
     return (
       <Box>
         <Button
-          size="large"
           onClick={() => {
             setIsShown((current) => !current);
           }}
@@ -253,7 +252,7 @@ const PlayBoard = () => {
         </Button>
         <Box mb={2} /> 
         {isShown && (
-          <ButtonGroup size="small" aria-label="small button group">
+          <ButtonGroup aria-label="small button group">
             {moves}
           </ButtonGroup>
         )}
@@ -393,12 +392,10 @@ const PlayBoard = () => {
 
   return (
     <Grid container pt={17} >
-      <Grid item xs={6} sm={8} >
+      <Grid item xs={6} sm={7} >
         <Toolbar sx={{ justifyContent: "center" }}>
           <Typography variant="h6">{opening}</Typography>
         </Toolbar>
-      {/* </Grid>
-      <Grid item xs={10} sm={8}> */}
           <Typography variant="h8" >{message}</Typography>
         <Box>
           <Chessboard
@@ -415,13 +412,14 @@ const PlayBoard = () => {
           />
         </Box>
       </Grid>
-      <Grid item marginLeft={2} marginTop={8} >
+      <Grid item marginLeft={2} marginTop={8}>
         <Box
           sx={{
             height: "1.75rem",
             width: "3rem",
             borderColor: "grey",
             borderRadius: 1,
+            marginBottom: 1.5,
           }}
           border={1}
           borderColor={"rgb(52, 108, 140)"}
@@ -429,7 +427,6 @@ const PlayBoard = () => {
         >
           {cloudEval}
         </Box>
-        <p></p>
         <ButtonGroup
           variant="outlined"
           orientation="vertical"
@@ -441,17 +438,18 @@ const PlayBoard = () => {
           <Button onClick={handleFlip}>flip</Button>
         </ButtonGroup>
         {displayTopMoves()}
-        <Grid
+        <Box
           item
+          display="flex"
+          width={300}
           sx={{
-            // maxWidth: 200,
             padding: 0.5,
             marginTop: 1,
           }}
         >
           {game.pgn()}
-          <Grid item>{currentUser && displayAddOpening()}</Grid>
-        </Grid>
+        </Box>
+        <Box item>{currentUser && displayAddOpening()}</Box>
         <TextField
           fullWidth
           component="form"

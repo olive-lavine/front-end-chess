@@ -80,7 +80,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
     <Box bgcolor="rgb(232, 229, 222)">
-      <Container
+      <Container maxWidth = '1500'
       sx={{
         width: "100vh",
         height: "100vh",
