@@ -1,16 +1,22 @@
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { Chess } from "chess.js";
 import Button from "@mui/material/Button";
+import Paper from '@mui/material/Paper';
+import { Icon, Tooltip, Zoom } from '@mui/material';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import FirstPageIcon from '@mui/icons-material/FirstPage';
+import Card from "@mui/material/Card";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Unstable_Grid2";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import TextField from "@mui/material/TextField";
 import InputAdornment from '@mui/material/InputAdornment';
@@ -19,7 +25,8 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import Box from '@mui/material/Box';
 import { useAuth } from "../contexts/AuthContext"
 import { useSettingsContext } from '../contexts/SettingsContext';
-
+import RingButtons from "./RingButtons";
+import PGN from "./PGN";
 
 
 
@@ -40,7 +47,6 @@ const PlayBoard = () => {
   const [opening, setOpening] = useState("");
   const [topMoves, setTopMoves] = useState([]);
   const [uci, setUci] = useState("");
-  const [isShown, setIsShown] = useState(false);
   const [moveCount, setMoveCount] = useState(0);
   const [selectedSquare, setSelectedSquare] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
@@ -51,7 +57,7 @@ const PlayBoard = () => {
 
   const getOpeningAsync = (uci) => {
     return axios
-      .get(`${kBaseUrl}${uci}&moves=5&topGames=0`)
+      .get(`${kBaseUrl}${uci}&moves=6&topGames=0`)
       .then((response) => {
         return response.data;
       })
@@ -124,7 +130,7 @@ const PlayBoard = () => {
           } else if (!isNaN(num)) {
             setCloudEval(`${num > 0 ? "+" : ""}${Math.ceil((num / 100) * 10) / 10}`);
           } else {
-            setCloudEval(game.turn === "w" ? `#${pv.mate}` : `#-${pv.mate}`);
+            setCloudEval(game.turn === "w" ? `#${pv.mate}` : `#${pv.mate}`);
           }
         }
       })
@@ -159,9 +165,9 @@ const PlayBoard = () => {
     setGame(gameCopy);
   
     if (gameCopy.in_checkmate()) {
-      setMessage("Checkmate");
+      setMessage("CHECKMATE");
     } else if (gameCopy.in_check()) {
-      setMessage("Check");
+      setMessage("CHECK");
     } else {
       setMessage("");
     }
@@ -228,39 +234,7 @@ const PlayBoard = () => {
     getOpening("");
   }, [getOpening]);
 
-  function displayTopMoves() {
-    const moves = topMoves.map((move) => (
-      <Button
-        key={move.san}
-        size="medium"
-        onClick={() => {
-          handleMoveClick(move.uci);
-        }}
-      >
-        {move.san}
-      </Button>
-    ));
-    return (
-      <Box>
-        <Button
-          onClick={() => {
-            setIsShown((current) => !current);
-          }}
-        >
-          {!isShown && <Typography variant="body1">view top moves</Typography>}
-          {isShown && <Typography variant="body1">hide top moves</Typography>}
-        </Button>
-        <Box mb={2} /> 
-        {isShown && (
-          <ButtonGroup aria-label="small button group">
-            {moves}
-          </ButtonGroup>
-        )}
-      </Box>
-    );
-  }
-
-  // make move chosen from top moves list
+  
   function handleMoveClick(chosenMove) {
     const castleMoves = {
       e1h1: { source: "e1", target: "g1" },
@@ -283,11 +257,9 @@ const PlayBoard = () => {
   function displayAddOpening() {
     if (game.pgn()) {
       return (
-        <p>
-          <Button size="large" onClick={addCustomOpening}>
+          <Button size="large" variant= 'outlined' onClick={addCustomOpening}>
             Add to repertoire
           </Button>
-        </p>
       );
     }
   }
@@ -337,7 +309,7 @@ const PlayBoard = () => {
       handleReset();
     }
     if (game.in_check()) {
-      setMessage("check");
+      setMessage("CHECK");
     } else {
       setMessage("");
     }
@@ -390,14 +362,33 @@ const PlayBoard = () => {
   };
 
 
-  return (
-    <Grid container pt={17} >
-      <Grid item xs={6} sm={7} >
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h6">{opening}</Typography>
-        </Toolbar>
-          <Typography variant="h8" >{message}</Typography>
-        <Box>
+return (
+  <Grid container spacing={2}>
+    <Grid item xs={12} sm={8}>
+      <Paper
+        elevation={2}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingBottom: 2,
+          bgcolor: "#DFDBD3"
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            maxWidth: "75vh",
+          }}
+        >
+          <Typography variant={opening && opening.length > 45 ? "h5" : "h4"} sx={{ marginBottom: 1, height: "2rem", }}>
+            {opening ? opening : "Your move"}
+          </Typography>
+          <Typography height={'2rem'}>{message}</Typography>
           <Chessboard
             position={game.fen()}
             onPieceDrop={onDrop}
@@ -411,13 +402,15 @@ const PlayBoard = () => {
             customSquareStyles={optionSquares}
           />
         </Box>
-      </Grid>
-      <Grid item marginLeft={2} marginTop={8}>
+      </Paper>
+    </Grid>
+    <Grid item xs={12} sm={4}>
+      <Paper elevation={2} sx={{ padding: 3, bgcolor: "#DFDBD3", height: ' 100%' }}>
+        <RingButtons moves={topMoves} handleClick={(move) => handleMoveClick(move)} />
         <Box
           sx={{
             height: "1.75rem",
             width: "3rem",
-            borderColor: "grey",
             borderRadius: 1,
             marginBottom: 1.5,
           }}
@@ -425,53 +418,61 @@ const PlayBoard = () => {
           borderColor={"rgb(52, 108, 140)"}
           align="center"
         >
-          {cloudEval}
+          <Typography color="primary">{cloudEval}</Typography>
         </Box>
         <ButtonGroup
           variant="outlined"
-          orientation="vertical"
           size="large"
           aria-label="small button group"
         >
-          <Button onClick={handleReset}>start over</Button>
-          <Button onClick={handleUndo}>⇐</Button>
-          <Button onClick={handleFlip}>flip</Button>
+        <Tooltip TransitionComponent={Zoom} title="Start Over" arrow>
+          <Button onClick={handleReset}>
+            <FirstPageIcon ></FirstPageIcon>
+          </Button>
+        </Tooltip>
+        <Tooltip TransitionComponent={Zoom} title="Previous Move" arrow>
+          <Button onClick={handleUndo}>
+            <ArrowBackIosNewIcon></ArrowBackIosNewIcon>
+          </Button>
+        </Tooltip>
+        <Tooltip TransitionComponent={Zoom} title="Flip Board" arrow>
+          <Button onClick={handleFlip}>
+            <RepeatIcon ></RepeatIcon>
+          </Button>
+        </Tooltip>
         </ButtonGroup>
-        {displayTopMoves()}
-        <Box
-          item
-          display="flex"
-          width={300}
-          sx={{
-            padding: 0.5,
-            marginTop: 1,
-          }}
-        >
-          {game.pgn()}
+        <Box height={'300px'}>
+          <PGN pgn={game.pgn()}></PGN>
         </Box>
-        <Box item>{currentUser && displayAddOpening()}</Box>
+        <Box height={'40px'} >{currentUser && displayAddOpening()}
+        </Box>
         <TextField
-          fullWidth
+          multiline
+          maxRows={8}
           component="form"
+          size="small"
           onSubmit={handleLoad}
           color="primary"
           placeholder="Load PGN"
-          value ={pgnInput}
+          value={pgnInput}
           onChange={handleInputChange}
           helperText={error ? 'Invalid Input' : ''}
           InputProps={{
-            sx: { fontSize: 'default' },
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton edge="end"type="submit">
-                  <AddBoxIcon/>
+                <IconButton edge="end" type="submit">
+                  <AddBoxIcon />
                 </IconButton>
-              </InputAdornment>),
+              </InputAdornment>
+            ),
           }}
         />
-      </Grid>
+      </Paper>
     </Grid>
-  );
+  </Grid>
+);
+
 };
 
 export default PlayBoard;
+

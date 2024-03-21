@@ -17,3 +17,7 @@
   font-family: "Evangelina";
   src: local("Evangelina"), url("./fonts/Evangelina.otf");
 } 
+
+.montserrat-header {
+  font-family: 'Montserrat', sans-serif;
+}

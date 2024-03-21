@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 const SettingsContext = createContext();
 
@@ -58,6 +59,11 @@ export function SettingsProvider({ children }) {
         </SettingsContext.Provider>
     );
 }
+
+SettingsProvider.propTypes = {
+    children: PropTypes.node.isRequired, 
+};
+
 
 // Custom hook to access the context
 export function useSettingsContext() {

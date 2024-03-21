@@ -6,7 +6,8 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Alert from '@mui/material/Alert';
 import Card from "@mui/material/Card";
-import AppBar from "@mui/material/AppBar";
+import Avatar from '@mui/material/Avatar';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from "@mui/material/Typography";
 import InputAdornment from '@mui/material/InputAdornment';
 import VisibilityTwoToneIcon from '@mui/icons-material/VisibilityTwoTone';
@@ -15,7 +16,6 @@ import CardMedia from "@mui/material/CardMedia";
 import { useAuth } from "../contexts/AuthContext"
 import { Link, useNavigate } from "react-router-dom"
 import { useState, useRef } from "react";
-import Stack from '@mui/material/Stack';
 
 
 
@@ -49,150 +49,76 @@ export default function LogIn() {
 
 
   return (
-    <Grid item container justifyContent="center">
-      <Card sx={{ mt: 17 }}>
-        <CardMedia
-          component="img"
-          image="./assets/images/chess.jpg"
-          alt="vintage chess pieces on blue background"
-        ></CardMedia>
+    <Grid container justifyContent="center">
+      <Box
+        sx={{
+          width: '100%',
+          height: '80vh',
+          backgroundImage: 'url("./assets/images/chess.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Card sx={{ width: 400, height: 'auto', m: 2, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
+            <Avatar sx={{ m: 1,  bgcolor: 'primary.light'}}>
+              <LockOutlinedIcon />
+            </Avatar>
+          <Typography variant="h5" sx={{ mb: 2, textAlign: 'center' }}>
+            Log In 
+          </Typography>
+            {error && <Alert severity="error">{error}</Alert>}
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+              <FormControl variant="outlined">
+                <InputLabel htmlFor="email-address">Email address</InputLabel>
+                <Input
+                  id="email-address"
+                  type="email"
+                  inputRef={emailRef}
+                  required
+                />
+              </FormControl>
+
+              <FormControl variant="outlined">
+                <InputLabel htmlFor="password">Password</InputLabel>
+                <Input
+                  id="password"
+                  type={hidePassword ? 'password' : 'text'}
+                  inputRef={passwordRef}
+                  required
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <Button
+                        onClick={showPassword}
+                        sx={{
+                          minWidth: 'unset',
+                          padding: '0px',
+                          '&:hover': { backgroundColor: 'transparent' },
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {hidePassword ? <VisibilityOffTwoToneIcon /> : <VisibilityTwoToneIcon />}
+                      </Button>
+                    </InputAdornment>
+                  }
+                />
+              </FormControl>
+
+              <Button type="submit" disabled={loading} variant="contained" size="large" sx={{ mt: 1, mb: 2 }}>
+                Log in
+              </Button>
+
+              <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                Need an account? <Button component={Link} to="/signup">Sign up</Button>
+              </Typography>
+
+            </Box>
+        </Box>
       </Card>
-      <Stack spacing={2}   justifyContent="center" alignItems="center">
-        <Box>{error && <Alert variant="danger">{error}</Alert>}</Box>
-      <Box component="form" onSubmit={handleSubmit} display="flex" alignItems="center" >
-        <FormControl sx={{ mt: 1}} >
-          <InputLabel htmlFor="email-address">Email address</InputLabel>
-              <Input
-                type="email"
-                inputRef = {emailRef}
-                required                                    
-            />
-        </FormControl>
-          <FormControl  sx={{ mt: 1}}>
-            <InputLabel htmlFor="password">Password</InputLabel>
-              <Input
-                type={hidePassword ? "password" : "input"}
-                inputRef = {passwordRef}
-                required   
-                endAdornment={
-                  hidePassword ? (
-                    <Button disableRipple  // Disable the button ripple effect
-                    sx={{
-                      minWidth: 'unset',  // Remove the minimum width
-                      padding: '0px',  // Adjust padding as needed
-                      '&:hover': {
-                        backgroundColor: 'transparent', // Remove button background on hover
-                      },
-                      cursor: 'pointer',
-                    }}>
-                    <InputAdornment position="end">
-                      <VisibilityOffTwoToneIcon
-                        fontSize="default"
-                        onClick={showPassword}
-                      />
-                    </InputAdornment>
-                    </Button>
-                  ) : (
-                    
-                    <InputAdornment position="end">
-                      <VisibilityTwoToneIcon
-                        fontSize="default"
-                        onClick={showPassword}
-                      />
-                    </InputAdornment>
-                  
-                  )
-                }                              
-            />
-          </FormControl>      
-          <Button type="submit"  disabled={loading} size={"large"}  sx={{ mt: 2}} >
-              Log in
-            </Button>
-        </Box>
-        <Box display="flex" alignItems="center">
-          Need an account? <Button component={Link} to="/signup">Sign up</Button>
-        </Box>
-        </Stack>
+      </Box>
     </Grid>
   );
 }
-
-
-  // const [name, setName] = useState("");
-  // const [status, setStatus] = useState("");
-
-  // const handleInput = (event) => {
-  //   setName(event.target.value);
-  // };
-
-  // const handleSubmit = (event) => {
-  //   event.preventDefault();
-  //   return axios
-  //     .get(`http://localhost:8080/players/?name=${name}`)
-  //     .then((player) => {
-  //       if (!player.data) {
-  //         setStatus(`welcome ${name}, please sign in`);
-  //         addPlayer(name);
-  //       } else {
-  //         setPlayer(player.data);
-  //         console.log(player.data)
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-  // };
-
-  // const addPlayer = (name) => {
-  //   const requestBody = { name: name };
-  //   return axios
-  //     .post(`http://localhost:8080/players`, requestBody)
-  //     .then((response) => {
-  //       console.log(response.data);
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-  // };
-
-  // return (
-  //   <Grid item container justifyContent="center">
-  //     <AppBar
-  //       sx={{
-  //         boxShadow: "none",
-  //         backgroundColor: "rgb(232, 229, 222)",
-  //       }}
-  //     >
-  //       <Typography variant="h5">
-  //         <Button
-  //           style={{
-  //             fontSize: "3em",
-  //             fontFamily: "Evangelina",
-  //             textTransform: "none",
-  //             color: "rgb(52, 108, 140)",
-  //           }}
-  //         >
-  //           Opening Knight
-  //         </Button>
-  //       </Typography>
-  //     </AppBar>
-  //     <Card sx={{ mt: 17 }}>
-  //       <CardMedia
-  //         component="img"
-  //         image="./assets/images/chess.jpg"
-  //         alt="vintage chess pieces on blue background"
-  //       ></CardMedia>
-  //     </Card>
-  //     <Box sx={{ mt: 1.5 }}>
-  //       <FormControl>
-  //         <InputLabel htmlFor="username">username</InputLabel>
-  //         <Input id="username" onChange={handleInput} />
-  //         <Button type="submit" onClick={handleSubmit}>
-  //           log in
-  //         </Button>
-  //       </FormControl>
-  //       <Box>{status}</Box>
-  //     </Box>
-  //   </Grid>
-  // );
-

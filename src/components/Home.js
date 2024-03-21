@@ -9,34 +9,65 @@ import { Link } from "react-router-dom"
 function Home (){
     const { currentUser } = useAuth()
     
-    return (
-        <Grid container pt={18}>
-            <Card color="background" elevation={0}>
-                <CardMedia
-                    component="img"
-                    image="./assets/images/chess.jpg"
-                    alt="vintage chess pieces on blue background"
-                />
-            {currentUser ? (
-            <Box align="center" marginTop={1}>
-                <Typography style={{
-                fontSize: "3.5em",
-                fontFamily: "Evangelina",
-                }} >
-                    Hi, {currentUser.displayName && currentUser.displayName.charAt(0).toUpperCase() + currentUser.displayName.slice(1)}!
-                </Typography>
-                
-            </Box>
-            ) : (
-            <Box align="center" marginTop={1}>
-                <Typography variant="h6">
-                Please <Link to="/login" style={{color: 'rgb(52, 108, 140)'}}>log in</Link> or{" "}
-                <Link to="/signup" style={{color: 'rgb(52, 108, 140)'}}>make an account</Link>!
-            </Typography>
-            </Box>
-)}    </Card>
-        </Grid>
-    );
+		return (
+			<Grid container justifyContent="center">
+				<Grid item xs={12} sm ={10}>
+					<Card elevation={0}>
+						<CardMedia
+							component="img"
+							image="./assets/images/chess.jpg"
+							alt="vintage chess pieces on blue background"
+
+						/>
+						<Box p={2} textAlign="center">
+							{currentUser ? (
+								<Typography variant="h4" gutterBottom>
+									Welcome back, {currentUser.displayName}!
+								</Typography>
+							) : (
+								<Typography variant="h4" gutterBottom>
+									Welcome to Opening Knight!
+								</Typography>
+							)}
+							<Typography variant="body1" gutterBottom>
+								Opening Knight is your ultimate destination for learning chess openings. Whether you're a beginner or an experienced player,
+								we've got something for everyone.
+							</Typography>
+							{currentUser ? (
+								<Button
+									component={Link}
+									to="/play"
+									variant="outlined"
+									color="primary"
+								>
+									Go to PlayBoard
+								</Button>
+							) : (
+								<Box mt={2}>
+									<Button
+										component={Link}
+										to="/login"
+										variant="contained"
+										color="primary"
+										sx={{ marginRight: 2 }}
+									>
+										Log In
+									</Button>
+									<Button
+										component={Link}
+										to="/signup"
+										variant="outlined"
+									>
+										Sign Up
+									</Button>
+								</Box>
+							)}
+						</Box>
+					</Card>
+				</Grid>
+			</Grid>
+		);
+    
 }
 
 export default Home;

@@ -1,5 +1,5 @@
 import { Chessboard } from "react-chessboard";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Chess } from "chess.js";
 import axios from "axios";
 import Button from "@mui/material/Button";
@@ -10,8 +10,9 @@ import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Grid from "@mui/material/Grid";
+import { Box } from "@mui/material";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import { useAuth } from "../contexts/AuthContext"
 import { useSettingsContext } from '../contexts/SettingsContext';
 
@@ -264,7 +265,7 @@ const StudyBoard = () => {
     setMoveCount(0);
     setMessage("");
     // setSelectedOpeningMoves([]);
-    // setOpeningName("");
+    setOpeningName("");
     setHint({})
     // if(totalReset){
       setOpeningHistory({});
@@ -446,23 +447,45 @@ const StudyBoard = () => {
   }
 
   return (
-    <Grid container pt={17}>
-      <Grid item xs={6}>
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h6">{openingName}</Typography>
-        </Toolbar>
-      </Grid>
-      <Grid item xs={10} sm={8}>
-        <Chessboard
-          position={game.fen()}
-          onPieceDrop={onDrop}
-          onSquareClick={onSquareClick}
-          boardOrientation={orientation}
-          customDarkSquareStyle={colorTheme.dark}
-          customLightSquareStyle={colorTheme.light}
-          customDropSquareStyle={colorTheme.drop}
-          customSquareStyles={hint}
-        />
+    <Grid container>
+      <Grid item xs={12} sm={8}>
+        <Paper
+          elevation={2}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingBottom: 2,
+            bgcolor: "#DFDBD3"
+          }}
+        >
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            maxWidth: "75vh",
+          }}
+        >
+          <Typography variant="h4">
+            {openingName ? openingName : "Choose an opening!"}
+          </Typography>
+          <Chessboard
+            position={game.fen()}
+            onPieceDrop={onDrop}
+            onSquareClick={onSquareClick}
+            boardOrientation={orientation}
+            customDarkSquareStyle={colorTheme.dark}
+            customLightSquareStyle={colorTheme.light}
+            customDropSquareStyle={colorTheme.drop}
+            customSquareStyles={hint}
+          />
+        </Box>
+      </Paper>
+    </Grid>
+      <Grid item xs={12} sm={4}>
         <FormControl sx={{ mt: 1.5, minWidth: 120 }} size="small" margin="dense">
           <InputLabel>Openings</InputLabel>
           <Select onChange={handleOpeningChange} value="" label="openings">

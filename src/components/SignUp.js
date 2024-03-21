@@ -1,3 +1,4 @@
+import React from "react"
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Input from "@mui/material/Input";
@@ -7,7 +8,9 @@ import Grid from "@mui/material/Grid";
 import CardMedia from "@mui/material/CardMedia";
 import Alert from '@mui/material/Alert';
 import Card from "@mui/material/Card";
-import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from "@mui/material/Typography";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext"
@@ -73,58 +76,68 @@ export default function SignUp() {
   }, [error]);
 
   return (
-    <Grid item container justifyContent="center">
-      <Card sx={{ mt: 17 }}>
-        <CardMedia
-          component="img"
-          image="./assets/images/chess.jpg"
-          alt="vintage chess pieces on blue background"
-        ></CardMedia>
-      </Card>
-      <Stack spacing={2}   justifyContent="center" alignItems="center">
-        <Box>{error && <Alert variant="danger">{error}</Alert>}</Box>
-      <Box component="form" onSubmit={onSubmit} display="flex" alignItems="center">
-        <FormControl sx={{ mt: 1}} >
-          <InputLabel htmlFor="email-address">Email address</InputLabel>
-          <Input
-            type="email"
-            label="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Email address"
-          />
-        </FormControl>
-        <FormControl sx={{ mt: 1}} >
-          <InputLabel htmlFor="user-name">Username</InputLabel>
-          <Input
-            type="text"
-            label="Username"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="Username"
-          />
-        </FormControl>
-        <FormControl sx={{ mt: 1}} >
-          <InputLabel htmlFor="password">Password</InputLabel>
-          <Input
-            type="password"
-            label="Create password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Password"
-          />
-        </FormControl>
-        <Button type="submit" disabled={loading} sx={{ mt: 2}}>
-            Sign Up
-          </Button>
+    <Grid container> 
+      <Box
+        sx={{
+          width: '100%',
+          height: '80vh',
+          backgroundImage: 'url("./assets/images/chess.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Card sx={{ width: 400, height: 'auto', m: 2, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
+            <Avatar sx={{ m: 1, bgcolor: 'primary.light' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Sign Up
+            </Typography>
+            {error && <Alert severity="error">{error}</Alert>}
+            <Box component="form" onSubmit={onSubmit} sx={{display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <FormControl >
+                <InputLabel htmlFor="user-name">Username</InputLabel>
+                <Input
+                  id="user-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </FormControl>
+              <FormControl>
+                <InputLabel htmlFor="email-address">Email Address</InputLabel>
+                <Input
+                  id="email-address"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </FormControl>
+              <FormControl >
+                <InputLabel htmlFor="password">Password</InputLabel>
+                <Input
+                  type="password"
+                  label="Create password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </FormControl>
+              <Button type="submit" disabled={loading} variant="contained" sx={{ mt: 2 }}>
+                Sign Up
+              </Button>
+            </Box>
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              Already have an account? <Button component={Link} to="/login">Log In</Button>
+            </Typography>
+          </Box>
+        </Card>
       </Box>
-      <Box display="flex" alignItems="center" >
-      Already have an account? <Button component={Link} to="/login">Log In</Button>
-      </Box>
-      </Stack>
     </Grid>
   );
 }

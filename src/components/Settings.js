@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { Grid, Box, FormControl, InputLabel, MenuItem, Select, Card, CardContent, Typography } from '@mui/material';
 import { Chessboard } from "react-chessboard";
 import { useSettingsContext } from '../contexts/SettingsContext';
@@ -55,7 +55,7 @@ function Settings() {
     }
 
     return (
-    <Grid container pt={18} justifyContent="center">
+    <Grid container justifyContent="center">
         <Card variant="outlined" sx={{ width: '300px' }}>
         <CardContent>
             <Box textAlign="center" mb={3}>
