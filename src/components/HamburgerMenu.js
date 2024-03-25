@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { IconButton, Menu, MenuItem, ListItemIcon, ListItemText  } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Link } from "react-router-dom"
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { Link } from "react-router-dom";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 
-
-
-const HamburgerMenu = ({isAuthenticated, handleLogin, handleLogout}) => {
+const HamburgerMenu = ({ isAuthenticated, handleLogin, handleLogout }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -22,36 +26,28 @@ const HamburgerMenu = ({isAuthenticated, handleLogin, handleLogout}) => {
   };
   return (
     <>
-      <IconButton
+      <Button
         aria-label="menu"
         aria-controls="menu"
         aria-haspopup="true"
         onClick={handleMenuOpen}
-        color="primary"
+        color="secondary"
       >
         <MenuIcon />
-      </IconButton>
-      <Menu
-        id="menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleMenuClose}
-      >
+      </Button>
+      <Menu id="menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
         <MenuItem component={Link} to="/about" onClick={handleMenuClose}>
-        <ListItemText>
-        About
-          </ListItemText></MenuItem>
+          <ListItemText>About</ListItemText>
+        </MenuItem>
         <MenuItem component={Link} to="/settings" onClick={handleMenuClose}>
-        <ListItemIcon>
-          <SettingsOutlinedIcon/>
-        </ListItemIcon>
-          <ListItemText>
-            Settings
-          </ListItemText> 
+          <ListItemIcon>
+            <SettingsOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText>Settings</ListItemText>
         </MenuItem>
         <MenuItem
           component={Link}
-          to='/login'
+          to="/login"
           onClick={() => {
             isAuthenticated ? handleLogout() : handleLogin();
             handleMenuClose();
@@ -60,12 +56,10 @@ const HamburgerMenu = ({isAuthenticated, handleLogin, handleLogout}) => {
           <ListItemIcon>
             {isAuthenticated ? <LockOutlinedIcon /> : <LockOpenOutlinedIcon />}
           </ListItemIcon>
-          <ListItemText>
-            {isAuthenticated ? 'Log out' : 'Log in'}
-          </ListItemText>        
+          <ListItemText>{isAuthenticated ? "Log out" : "Log in"}</ListItemText>
         </MenuItem>
       </Menu>
-      </>
+    </>
   );
 };
 

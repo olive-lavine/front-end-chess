@@ -1,5 +1,11 @@
 import { Chessboard } from "react-chessboard";
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { Chess } from "chess.js";
 import axios from "axios";
 import Button from "@mui/material/Button";
@@ -8,25 +14,31 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
-import Toolbar from "@mui/material/Toolbar";
+import RepeatIcon from "@mui/icons-material/Repeat";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import KeyboardDoubleArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardDoubleArrowLeftOutlined";
+import FirstPageIcon from "@mui/icons-material/FirstPage";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { IconButton, Tooltip, Zoom } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Grid";
 import { Box } from "@mui/material";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Paper from "@mui/material/Paper";
-import { useAuth } from "../contexts/AuthContext"
-import { useSettingsContext } from '../contexts/SettingsContext';
-
+import { useAuth } from "../contexts/AuthContext";
+import { useSettingsContext } from "../contexts/SettingsContext";
+import PGN from "./PGN";
 
 const baseUrl = `${process.env.REACT_APP_BASE_URL}players`;
 const kBaseUrl = `${process.env.REACT_APP_BASE_URL}openings/parent`;
 
-
-
 const StudyBoard = () => {
   const chessRef = useRef(new Chess());
 
-  const { currentUser } = useAuth()
-  const { colorTheme, sound, } = useSettingsContext();
+  const { currentUser } = useAuth();
+  const { colorTheme, sound, hintColor } = useSettingsContext();
 
   const [game, setGame] = useState(chessRef.current);
   const [orientation, setOrientation] = useState("white");
@@ -43,11 +55,10 @@ const StudyBoard = () => {
   const [openingHistory, setOpeningHistory] = useState({});
   const [customSelected, setCustomSelected] = useState(false);
   const moveSound = useMemo(() => new Audio(sound), [sound]);
-  const [selectedSquare, setSelectedSquare] = useState('');
+  const [selectedSquare, setSelectedSquare] = useState("");
   const [hint, setHint] = useState({});
   const [totalReset, setTotalReset] = useState(true);
-  const [selectedValue, setSelectedValue] = useState('');
-
+  const [selectedValue, setSelectedValue] = useState("");
 
   const getOpeningsAsync = (parentId) => {
     return axios
@@ -99,7 +110,6 @@ const StudyBoard = () => {
         console.log(err);
       });
   }, []);
-  
 
   useEffect(() => {
     getOpenings("");
@@ -114,7 +124,9 @@ const StudyBoard = () => {
       .delete(`${baseUrl}/custom/${selectedCustomId}`)
       .then((response) => {
         // Update the frontend state to remove the deleted custom opening
-        const updatedOpenings = customOpenings.filter((opening) => opening.id !== selectedCustomId);
+        const updatedOpenings = customOpenings.filter(
+          (opening) => opening.id !== selectedCustomId
+        );
         setCustomOpenings(updatedOpenings);
         setTotalReset(true);
         handleReset();
@@ -149,13 +161,14 @@ const StudyBoard = () => {
 
   // Handles CPU making the correct opening moves
   useEffect(() => {
-    const isCPUTurn = (orientation === "white" && game.turn() === "b") || (orientation === "black" && game.turn() === "w");
-  
+    const isCPUTurn =
+      (orientation === "white" && game.turn() === "b") ||
+      (orientation === "black" && game.turn() === "w");
+
     if (isCPUTurn && moveCount < selectedOpeningMoves.length) {
       cpu_moves();
     }
   }, [moveCount, game, orientation, selectedOpeningMoves, cpu_moves]);
-  
 
   function onDrop(sourceSquare, targetSquare) {
     if (selectedOpeningMoves.length === 0) {
@@ -202,9 +215,8 @@ const StudyBoard = () => {
       setMoveCount(moveCount + 1);
     }
   }
-  
 
-  // when user clicks on a piece 
+  // when user clicks on a piece
   function onSquareClick(square) {
     if (game.get(square) && !selectedSquare) {
       setSelectedSquare(square);
@@ -255,7 +267,7 @@ const StudyBoard = () => {
       setMoveCount(moveCount + 1);
     }
 
-    setSelectedSquare('');
+    setSelectedSquare("");
   }
 
   function handleReset() {
@@ -264,15 +276,14 @@ const StudyBoard = () => {
     setGame(gameCopy);
     setMoveCount(0);
     setMessage("");
-    // setSelectedOpeningMoves([]);
+    setSelectedOpeningMoves([]);
     setOpeningName("");
-    setHint({})
-    // if(totalReset){
-      setOpeningHistory({});
-      setIdHistory([]);
-      getOpenings("");
-      setCustomSelected(false);
-    // }
+    setHint({});
+    setSelectedValue("");
+    setOpeningHistory({});
+    setIdHistory([]);
+    getOpenings("");
+    setCustomSelected(false);
   }
 
   function handleUndo() {
@@ -298,13 +309,15 @@ const StudyBoard = () => {
     const openingId = parseInt(event.target.value);
     const updatedIdHistory = [...idHistory, openingId];
     setIdHistory(updatedIdHistory);
-  
+
     // Find the selected opening
-    const selectedOpening = openings.find((opening) => opening.id === openingId);
+    const selectedOpening = openings.find(
+      (opening) => opening.id === openingId
+    );
     if (selectedOpening) {
       setHasChild(selectedOpening.hasChild);
       setOpeningName(selectedOpening.name);
-  
+
       const historyCopy = { ...openingHistory };
       historyCopy[openingId] = {
         hasChild: selectedOpening.hasChild,
@@ -313,16 +326,17 @@ const StudyBoard = () => {
         moves: [],
       };
       setOpeningHistory(historyCopy);
-  
+
       // Transform PGN to list of moves
-      const openingMoves = selectedOpening.pgn.split(" ").filter((_, index) => index % 3 !== 0);
+      const openingMoves = selectedOpening.pgn
+        .split(" ")
+        .filter((_, index) => index % 3 !== 0);
       setSelectedOpeningMoves(openingMoves);
       historyCopy[openingId].moves = openingMoves;
     }
-  
+
     getOpenings(openingId);
   };
-  
 
   const handleCustomOpeningChange = (event) => {
     setTotalReset(false);
@@ -331,56 +345,83 @@ const StudyBoard = () => {
     setCustomSelected(true);
     setSelectedValue(event.target.value);
 
-  
     const openingId = parseInt(event.target.value);
     setSelectedCustomId(openingId);
-  
+
     // Find the selected custom opening
-    const selectedOpening = customOpenings.find((opening) => opening.id === openingId);
+    const selectedOpening = customOpenings.find(
+      (opening) => opening.id === openingId
+    );
     if (selectedOpening) {
       setHasChild(selectedOpening.hasChild);
       setOpeningName(selectedOpening.name);
-  
+
       // Transform PGN to list of moves
-      const openingMoves = selectedOpening.pgn.split(" ").filter((_, index) => index % 3 !== 0);
+      const openingMoves = selectedOpening.pgn
+        .split(" ")
+        .filter((_, index) => index % 3 !== 0);
       setSelectedOpeningMoves(openingMoves);
     }
   };
-  
 
   function displayDeleteOpening() {
     if (customSelected) {
       return (
-        <Box>
-          <Button sx={{ ml: 2 }} size="small" onClick={deleteCustomOpening}>
-            <Typography variant="body1">Delete opening</Typography>
-          </Button>
-        </Box>
-        
+        <IconButton
+          size="small"
+          variant="outlined"
+          onClick={deleteCustomOpening}
+        >
+          <DeleteIcon></DeleteIcon>
+        </IconButton>
+      );
+    } else {
+      return (
+        <IconButton
+          size="small"
+          variant="outlined"
+          disabled={true}
+          disableFocusRipple={true}
+        >
+          <DeleteIcon></DeleteIcon>
+        </IconButton>
       );
     }
   }
 
   function handleView() {
-    if (selectedOpeningMoves.length > 0 && moveCount < selectedOpeningMoves.length) {
+    if (
+      selectedOpeningMoves.length > 0 &&
+      moveCount < selectedOpeningMoves.length
+    ) {
       return (
-        <Box mt={1}>
-          <Button
-            sx={{ ml: 2 }}
-            size="small"
-            onClick={() => {
-              setIsShown((current) => !current);
-            }}
-          >
-            {!isShown && (
-              <Typography variant="body1">View next move</Typography>
-            )}
-            {isShown && <Typography variant="body1">Hide next move</Typography>}
-          </Button>
-        </Box>
+        <IconButton
+          size="small"
+          disableRipple="true"
+          onClick={() => {
+            setIsShown((current) => !current);
+          }}
+        >
+          {!isShown ? (
+            <Tooltip TransitionComponent={Zoom} title="Show Hints" arrow>
+              <VisibilityOutlinedIcon />
+            </Tooltip>
+          ) : (
+            <VisibilityOffOutlinedIcon />
+          )}
+        </IconButton>
       );
     } else {
-      return <Box mt={1}></Box>;
+      return (
+        <IconButton
+          size="small"
+          variant="outlined"
+          disabled={true}
+          disableFocusRipple={true}
+        >
+          <VisibilityOutlinedIcon />
+        </IconButton>
+      );
     }
   }
 
@@ -391,26 +432,31 @@ const StudyBoard = () => {
       tracker.load_pgn(game.pgn());
       const move = tracker.move(selectedOpeningMoves[moveCount]);
       if (move) {
-        if ((orientation === 'white' && moveCount % 2 === 0) || (orientation === 'black' && moveCount % 2 !== 0)) {
-            const hints = {
-              [move.from]: { backgroundColor: "rgb(250, 238, 220)", boxShadow: "inset 0 0 1px 4px rgb(245, 213, 164)" },
-              [move.to]: { backgroundColor: "rgb(250, 238, 220)", boxShadow: "inset 0 0 1px 4px rgb(245, 213, 164)" },
-            };
-            setHint(hints);
-          }
-      } 
+        if (
+          (orientation === "white" && moveCount % 2 === 0) ||
+          (orientation === "black" && moveCount % 2 !== 0)
+        ) {
+          const hints = {
+            [move.from]: {
+              backgroundColor: hintColor,
+            },
+            [move.to]: {
+              backgroundColor: hintColor,
+            },
+          };
+          setHint(hints);
+        }
+      }
     } else {
       setHint({});
     }
   }, [isShown, moveCount, game, selectedOpeningMoves, orientation]);
 
-
-
   function toggleOpenings() {
     if (selectedOpeningMoves.length > 0 && !customSelected) {
       const previousId = idHistory[idHistory.length - 2];
       const currentId = idHistory[idHistory.length - 1];
-  
+
       const handlePreviousOpenings = () => {
         if (previousId) {
           getOpenings(previousId);
@@ -431,110 +477,153 @@ const StudyBoard = () => {
         setOpeningHistory(historyCopy);
         handleUndo();
       };
-  
+
       return (
-        <Box mt={2}>
-          <Button
-            size="large"
-            sx={{ ml: .25 }}
-            onClick={handlePreviousOpenings}
-          >
-            Previous Openings
-          </Button>
-        </Box>
+        <Tooltip TransitionComponent={Zoom} title="Previous Openings" arrow>
+          <IconButton onClick={handlePreviousOpenings} variant="outlined">
+            <KeyboardDoubleArrowLeftOutlinedIcon></KeyboardDoubleArrowLeftOutlinedIcon>
+          </IconButton>
+        </Tooltip>
+      );
+    } else {
+      return (
+        <IconButton
+          disabled={true}
+          disableFocusRipple={true}
+          variant="outlined"
+        >
+          <KeyboardDoubleArrowLeftOutlinedIcon></KeyboardDoubleArrowLeftOutlinedIcon>
+        </IconButton>
       );
     }
   }
 
   return (
-    <Grid container>
-      <Grid item xs={12} sm={8}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={7.5}>
         <Paper
           elevation={2}
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            paddingBottom: 2,
-            bgcolor: "#DFDBD3"
-          }}
-        >
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
             maxWidth: "75vh",
+            paddingLeft: 2,
+            paddingRight: 2,
+            paddingBottom: 2,
           }}
         >
-          <Typography variant="h4">
-            {openingName ? openingName : "Choose an opening!"}
-          </Typography>
-          <Chessboard
-            position={game.fen()}
-            onPieceDrop={onDrop}
-            onSquareClick={onSquareClick}
-            boardOrientation={orientation}
-            customDarkSquareStyle={colorTheme.dark}
-            customLightSquareStyle={colorTheme.light}
-            customDropSquareStyle={colorTheme.drop}
-            customSquareStyles={hint}
-          />
-        </Box>
-      </Paper>
-    </Grid>
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              maxWidth: "75vh",
+            }}
+          >
+            <Typography
+              variant={openingName && openingName.length > 39 ? "h5" : "h4"}
+              sx={{ marginTop: 1, marginBottom: 1, height: "2rem" }}
+            >
+              {openingName ? openingName : "Choose an opening!"}
+            </Typography>
+            <Typography height={"2rem"}>{message}</Typography>
+            <Chessboard
+              position={game.fen()}
+              onPieceDrop={onDrop}
+              onSquareClick={onSquareClick}
+              boardOrientation={orientation}
+              customDarkSquareStyle={colorTheme.dark}
+              customLightSquareStyle={colorTheme.light}
+              customDropSquareStyle={colorTheme.drop}
+              customSquareStyles={hint}
+            />
+          </Box>
+        </Paper>
+      </Grid>
       <Grid item xs={12} sm={4}>
-        <FormControl sx={{ mt: 1.5, minWidth: 120 }} size="small" margin="dense">
-          <InputLabel>Openings</InputLabel>
-          <Select onChange={handleOpeningChange} value="" label="openings">
-            {openings.map((opening) => (
-              <MenuItem key={opening.id} value={opening.id}>
-                {opening.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl sx={{ mt: 1.5, ml: 2, minWidth: 120 }} size="small" margin="dense">
-          <InputLabel>Repertoire</InputLabel>
-          <Select value={selectedValue} onChange={handleCustomOpeningChange} label="repertoire">
-            {customOpenings.map((opening) => (
-              <MenuItem key={opening.id} value={opening.id}>
-                {opening.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h5">{message}</Typography>
-        </Toolbar>
-      </Grid>
-      <Grid item>
-        <ButtonGroup
-          color="primary"
-          variant="outlined"
-          orientation="vertical"
-          size="large"
-          aria-label="small button group"
-          sx={{ ml: 2 }}
-        >
-          <Button onClick={handleReset} >Start Over</Button>
-          <Button onClick={handleUndo}>⇐</Button>
-          <Button onClick={handleFlip}>Flip</Button>
-        </ButtonGroup>
-        <Grid item>{toggleOpenings()}</Grid>
-        <Box mb={2} />
-        {handleView()}
-        <Box mb={2} />
-        <Grid item sx={{ maxWidth: 200, padding: 0.5, ml: 2 }}>
-          <Typography>{game.pgn()}</Typography>
-        </Grid>
-        <Grid item>{displayDeleteOpening()}</Grid>
+        <Stack spacing={2}>
+          <Paper sx={{ padding: 2 }}>
+            <Stack spacing={1}>
+              <Stack direction="row">
+                <FormControl fullWidth size="small" margin="dense">
+                  <InputLabel>Openings</InputLabel>
+                  <Select
+                    onChange={handleOpeningChange}
+                    value=""
+                    label="openings"
+                  >
+                    {openings.map((opening) => (
+                      <MenuItem key={opening.id} value={opening.id}>
+                        {opening.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {toggleOpenings()}
+              </Stack>
+
+              <Stack direction="row">
+                <FormControl fullWidth size="small" margin="dense">
+                  <InputLabel>Repertoire</InputLabel>
+                  <Select
+                    value={selectedValue}
+                    onChange={handleCustomOpeningChange}
+                    label="repertoire"
+                  >
+                    {customOpenings.map((opening) => (
+                      <MenuItem key={opening.id} value={opening.id}>
+                        {opening.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {displayDeleteOpening()}
+              </Stack>
+
+              {handleView()}
+
+              <Box display="flex" justifyContent="center">
+                <ButtonGroup
+                  variant="contained"
+                  size="large"
+                  aria-label="small button group"
+                >
+                  <Tooltip TransitionComponent={Zoom} title="Start Over" arrow>
+                    <Button onClick={handleReset}>
+                      <FirstPageIcon></FirstPageIcon>
+                    </Button>
+                  </Tooltip>
+                  <Tooltip
+                    TransitionComponent={Zoom}
+                    title="Previous Move"
+                    arrow
+                  >
+                    <Button onClick={handleUndo}>
+                      <ArrowBackIosNewIcon></ArrowBackIosNewIcon>
+                    </Button>
+                  </Tooltip>
+                  <Tooltip TransitionComponent={Zoom} title="Flip Board" arrow>
+                    <Button onClick={handleFlip}>
+                      <RepeatIcon></RepeatIcon>
+                    </Button>
+                  </Tooltip>
+                </ButtonGroup>
+              </Box>
+            </Stack>
+          </Paper>
+
+          <Paper sx={{ height: "210px", padding: 2 }}>
+            <Typography textAlign={"center"}>Moves</Typography>
+            <PGN pgn={game.pgn()} />
+          </Paper>
+        </Stack>
       </Grid>
     </Grid>
+    // </Grid>
   );
-  
 };
 
 export default StudyBoard;

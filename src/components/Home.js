@@ -1,73 +1,68 @@
-import React from 'react';
-import { useAuth } from "../contexts/AuthContext"
+import React from "react";
+import { useAuth } from "../contexts/AuthContext";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
-import { Grid, Button, Typography, Box } from '@mui/material';
-import { Link } from "react-router-dom"
+import { Grid, Button, Typography, Box } from "@mui/material";
+import { Link } from "react-router-dom";
 
+function Home() {
+  const { currentUser } = useAuth();
 
-function Home (){
-    const { currentUser } = useAuth()
-    
-		return (
-			<Grid container justifyContent="center">
-				<Grid item xs={12} sm ={10}>
-					<Card elevation={0}>
-						<CardMedia
-							component="img"
-							image="./assets/images/chess.jpg"
-							alt="vintage chess pieces on blue background"
+  return (
+    <Grid container justifyContent="center">
+      <Grid item xs={12} sm={10}>
+        <Card elevation={0}>
+          <CardMedia
+            component="img"
+            image="./assets/images/chess.jpg"
+            alt="vintage chess pieces on blue background"
+          />
+          <Box p={2} textAlign="center">
+            {currentUser ? (
+              <Typography variant="h4" gutterBottom>
+                Welcome back, {currentUser.displayName}!
+              </Typography>
+            ) : (
+              <Typography variant="h4" gutterBottom>
+                Welcome to Opening Knight!
+              </Typography>
+            )}
 
-						/>
-						<Box p={2} textAlign="center">
-							{currentUser ? (
-								<Typography variant="h4" gutterBottom>
-									Welcome back, {currentUser.displayName}!
-								</Typography>
-							) : (
-								<Typography variant="h4" gutterBottom>
-									Welcome to Opening Knight!
-								</Typography>
-							)}
-							<Typography variant="body1" gutterBottom>
-								Opening Knight is your ultimate destination for learning chess openings. Whether you're a beginner or an experienced player,
-								we've got something for everyone.
-							</Typography>
-							{currentUser ? (
-								<Button
-									component={Link}
-									to="/play"
-									variant="outlined"
-									color="primary"
-								>
-									Go to PlayBoard
-								</Button>
-							) : (
-								<Box mt={2}>
-									<Button
-										component={Link}
-										to="/login"
-										variant="contained"
-										color="primary"
-										sx={{ marginRight: 2 }}
-									>
-										Log In
-									</Button>
-									<Button
-										component={Link}
-										to="/signup"
-										variant="outlined"
-									>
-										Sign Up
-									</Button>
-								</Box>
-							)}
-						</Box>
-					</Card>
-				</Grid>
-			</Grid>
-		);
-    
+            {currentUser ? (
+              <Button
+                component={Link}
+                to="/play"
+                variant="contained"
+                color="primary"
+              >
+                Go to PlayBoard
+              </Button>
+            ) : (
+              <Box mt={2}>
+                <Button
+                  component={Link}
+                  to="/login"
+                  variant="contained"
+                  color="primary"
+                  sx={{ marginRight: 2 }}
+                >
+                  Log In
+                </Button>
+                <Button
+                  component={Link}
+                  color="secondary"
+                  to="/signup"
+                  variant="contained"
+                >
+                  Sign Up
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </Card>
+      </Grid>
+    </Grid>
+  );
 }
 
 export default Home;
