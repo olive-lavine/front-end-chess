@@ -67,7 +67,7 @@ const PlayBoard = () => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const fontSize = isMobile
     ? "h6"
-    : opening && opening.length + message.length > 35
+    : opening && opening.length + message.length > 30
       ? "h5"
       : "h4";
 
@@ -466,7 +466,7 @@ const PlayBoard = () => {
             <Typography
               variant={fontSize}
               sx={{
-                marginBottom: 1,
+                marginBottom: 2,
                 height: "3rem",
               }}
             >
@@ -601,7 +601,15 @@ const PlayBoard = () => {
                   {cloudEval}
                 </Box>
               </Tooltip>
-              {currentUser && displayAddOpening()}
+              <Tooltip TransitionComponent={Zoom} title="Load PGN" arrow>
+                <IconButton
+                  onClick={() => {
+                    setShowLoadPGN(!showLoadPGN);
+                  }}
+                >
+                  <BiSolidChess />
+                </IconButton>
+              </Tooltip>
               <Tooltip
                 TransitionComponent={Zoom}
                 title={showMoves ? "Hide Top Moves" : "Show Top Moves"}
@@ -619,6 +627,8 @@ const PlayBoard = () => {
                   )}
                 </IconButton>
               </Tooltip>
+              {currentUser && displayAddOpening()}
+
               <Snackbar
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 open={showAdded}
@@ -626,15 +636,6 @@ const PlayBoard = () => {
                 onClose={handleCloseAdded}
                 message="Added to Repetoire."
               />
-              <Tooltip TransitionComponent={Zoom} title="Load PGN" arrow>
-                <IconButton
-                  onClick={() => {
-                    setShowLoadPGN(!showLoadPGN);
-                  }}
-                >
-                  <BiSolidChess />
-                </IconButton>
-              </Tooltip>
             </Stack>
           </Paper>
         </Grid>

@@ -396,8 +396,7 @@ const StudyBoard = () => {
     ) {
       return (
         <IconButton
-          size="small"
-          disableRipple="true"
+          disableRipple={true}
           onClick={() => {
             setIsShown((current) => !current);
           }}
@@ -524,7 +523,7 @@ const StudyBoard = () => {
             }}
           >
             <Typography
-              variant={openingName && openingName.length > 39 ? "h5" : "h4"}
+              variant={openingName && openingName.length > 30 ? "h5" : "h4"}
               sx={{ marginTop: 1, marginBottom: 1, height: "2rem" }}
             >
               {openingName ? openingName : "Choose an opening!"}
@@ -622,7 +621,6 @@ const StudyBoard = () => {
         </Stack>
       </Grid>
     </Grid>
-    // </Grid>
   );
 };
 
