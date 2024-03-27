@@ -504,10 +504,8 @@ const PlayBoard = () => {
           <Paper>
             <Stack direction="column" alignItems="center" spacing={1}>
               {isMobile ? (
-                // Render mobile version components
                 mobileTopMoves()
               ) : (
-                // Render desktop version components
                 <RingButtons
                   moves={topMoves}
                   handleClick={(move) => handleMoveClick(move)}

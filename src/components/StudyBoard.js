@@ -16,6 +16,8 @@ import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+
 import KeyboardDoubleArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardDoubleArrowLeftOutlined";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -619,7 +621,7 @@ const StudyBoard = () => {
                 >
                   <Tooltip TransitionComponent={Zoom} title="Start Over" arrow>
                     <Button onClick={handleReset}>
-                      <FirstPageIcon></FirstPageIcon>
+                      <FirstPageIcon fontSize="large" />
                     </Button>
                   </Tooltip>
                   <Tooltip
@@ -628,7 +630,7 @@ const StudyBoard = () => {
                     arrow
                   >
                     <Button onClick={handleUndo}>
-                      <ArrowBackIosNewIcon></ArrowBackIosNewIcon>
+                      <NavigateBeforeIcon fontSize="large" />
                     </Button>
                   </Tooltip>
                   <Tooltip TransitionComponent={Zoom} title="Flip Board" arrow>
