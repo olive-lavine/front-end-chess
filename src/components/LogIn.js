@@ -14,6 +14,7 @@ import VisibilityTwoToneIcon from "@mui/icons-material/VisibilityTwoTone";
 import VisibilityOffTwoToneIcon from "@mui/icons-material/VisibilityOffTwoTone";
 import CardMedia from "@mui/material/CardMedia";
 import TextField from "@mui/material/TextField";
+import { Tooltip, Zoom } from "@mui/material";
 
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -119,9 +120,9 @@ export default function LogIn() {
                         }}
                       >
                         {hidePassword ? (
-                          <VisibilityOffTwoToneIcon />
-                        ) : (
                           <VisibilityTwoToneIcon />
+                        ) : (
+                          <VisibilityOffTwoToneIcon />
                         )}
                       </Button>
                     </InputAdornment>
@@ -152,108 +153,3 @@ export default function LogIn() {
     </Grid>
   );
 }
-//   return (
-//     <Grid container justifyContent="center">
-//       <Box
-//         sx={{
-//           width: "100%",
-//           height: "80vh",
-//           backgroundImage: 'url("./assets/images/chess.jpg")',
-//           backgroundSize: "cover",
-//           backgroundPosition: "center",
-//           display: "flex",
-//           justifyContent: "center",
-//           alignItems: "center",
-//         }}
-//       >
-//         <Paper
-//           sx={{
-//             width: 400,
-//             height: "auto",
-//             m: 2,
-//             backgroundColor: "background.default",
-//           }}
-//         >
-//           <Box
-//             sx={{
-//               display: "flex",
-//               flexDirection: "column",
-//               alignItems: "center",
-//               p: 2,
-//             }}
-//           >
-//             <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-//               <LockOutlinedIcon />
-//             </Avatar>
-//             <Typography variant="h5" sx={{ mb: 2, textAlign: "center" }}>
-//               Log In
-//             </Typography>
-//             {error && <Alert severity="error">{error}</Alert>}
-//             <Box
-//               component="form"
-//               onSubmit={handleSubmit}
-//               sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-//             >
-//               <TextField
-//                 id="email-address"
-//                 label="Email address"
-//                 type="email"
-//                 inputRef={emailRef}
-//                 required
-//                 variant="outlined"
-//               />
-
-//               <TextField
-//                 id="password"
-//                 label="Password"
-//                 type={hidePassword ? "password" : "text"}
-//                 inputRef={passwordRef}
-//                 required
-//                 variant="outlined"
-//                 InputProps={{
-//                   endAdornment: (
-//                     <InputAdornment position="end">
-//                       <Button
-//                         color="secondary"
-//                         onClick={showPassword}
-//                         sx={{
-//                           minWidth: "unset",
-//                           padding: "0px",
-//                           "&:hover": { backgroundColor: "transparent" },
-//                           cursor: "pointer",
-//                         }}
-//                       >
-//                         {hidePassword ? (
-//                           <VisibilityOffTwoToneIcon />
-//                         ) : (
-//                           <VisibilityTwoToneIcon />
-//                         )}
-//                       </Button>
-//                     </InputAdornment>
-//                   ),
-//                 }}
-//               />
-
-//               <Button
-//                 type="submit"
-//                 disabled={loading}
-//                 variant="contained"
-//                 size="large"
-//                 sx={{ mt: 1, mb: 2 }}
-//               >
-//                 Log in
-//               </Button>
-
-//               <Typography variant="body2" sx={{ textAlign: "center" }}>
-//                 Need an account?{" "}
-//                 <Button color="secondary" component={Link} to="/signup">
-//                   Sign up
-//                 </Button>
-//               </Typography>
-//             </Box>
-//           </Box>
-//         </Paper>
-//       </Box>
-//     </Grid>
-//   );
-// }

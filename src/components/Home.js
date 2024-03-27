@@ -29,14 +29,24 @@ function Home() {
             )}
 
             {currentUser ? (
-              <Button
-                component={Link}
-                to="/play"
-                variant="contained"
-                color="primary"
-              >
-                Go to PlayBoard
-              </Button>
+              <Box>
+                <Button
+                  component={Link}
+                  to="/play"
+                  variant="contained"
+                  sx={{ marginRight: 2 }}
+                >
+                  Go to Play Board
+                </Button>
+                <Button
+                  component={Link}
+                  to="/study"
+                  variant="contained"
+                  color="secondary"
+                >
+                  Go to Practice Board
+                </Button>
+              </Box>
             ) : (
               <Box mt={2}>
                 <Button

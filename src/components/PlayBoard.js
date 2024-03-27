@@ -127,7 +127,7 @@ const PlayBoard = () => {
       })
       .catch((err) => {
         console.log(err);
-        setCloudEval("?");
+        setCloudEval("");
         throw new Error("error getting stockfish eval");
       });
   };
@@ -157,7 +157,7 @@ const PlayBoard = () => {
       })
       .catch((err) => {
         console.log(err);
-        setCloudEval("?");
+        setCloudEval("");
       });
   }, []);
 

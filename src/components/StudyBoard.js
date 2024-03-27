@@ -395,20 +395,24 @@ const StudyBoard = () => {
       moveCount < selectedOpeningMoves.length
     ) {
       return (
-        <IconButton
-          disableRipple={true}
-          onClick={() => {
-            setIsShown((current) => !current);
-          }}
+        <Tooltip
+          TransitionComponent={Zoom}
+          title={isShown ? "Hide Hints" : "Show Hints"}
+          arrow
         >
-          {!isShown ? (
-            <Tooltip TransitionComponent={Zoom} title="Show Hints" arrow>
-              <VisibilityOutlinedIcon />
-            </Tooltip>
-          ) : (
-            <VisibilityOffOutlinedIcon />
-          )}
-        </IconButton>
+          <IconButton
+            disableRipple={true}
+            onClick={() => {
+              setIsShown((current) => !current);
+            }}
+          >
+            {isShown ? (
+              <VisibilityOffOutlinedIcon /> // Icon representing hints are currently on
+            ) : (
+              <VisibilityOutlinedIcon /> // Icon representing hints are currently off
+            )}
+          </IconButton>
+        </Tooltip>
       );
     } else {
       return (
@@ -474,6 +478,7 @@ const StudyBoard = () => {
         const historyCopy = { ...openingHistory };
         delete historyCopy[currentId];
         setOpeningHistory(historyCopy);
+
         handleUndo();
       };
 
@@ -565,7 +570,12 @@ const StudyBoard = () => {
               </Stack>
 
               <Stack direction="row">
-                <FormControl fullWidth size="small" margin="dense">
+                <FormControl
+                  fullWidth
+                  size="small"
+                  margin="dense"
+                  disabled={customOpenings.length === 0 ? true : false}
+                >
                   <InputLabel>Repertoire</InputLabel>
                   <Select
                     value={selectedValue}
@@ -582,7 +592,24 @@ const StudyBoard = () => {
                 {displayDeleteOpening()}
               </Stack>
 
-              {handleView()}
+              <Tooltip
+                TransitionComponent={Zoom}
+                title={isShown ? "Hide Hints" : "Show Hints"}
+                arrow
+              >
+                <IconButton
+                  disableRipple={true}
+                  onClick={() => {
+                    setIsShown((current) => !current);
+                  }}
+                >
+                  {isShown ? (
+                    <VisibilityOffOutlinedIcon /> // Icon representing hints are currently on
+                  ) : (
+                    <VisibilityOutlinedIcon /> // Icon representing hints are currently off
+                  )}
+                </IconButton>
+              </Tooltip>
 
               <Box display="flex" justifyContent="center">
                 <ButtonGroup
